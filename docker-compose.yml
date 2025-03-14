@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgresql:
+    image: postgres:14
+    container_name: postgresql
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "l??pT-87pBqE2hN9-zY/)"
+      POSTGRES_DB: "prism"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - prismnetwork
+
+  prism-server:
+    build: ./prism-server
+    container_name: prism-server
+    runtime: nvidia  # Requires NVIDIA Container Toolkit on the host for GPU access
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+    volumes:
+      - ./prism-server_data:/workspace/data 
+      - ./prism-server:/workspace/src      
+    ports:
+      - "8082:8082"
+    networks:
+      - prismnetwork
+    stdin_open: true      # Keeps STDIN open (like -i)
+    tty: true             # Allocates a TTY (like -t)
+
+volumes:
+  pgdata:
+
+networks:
+  prismnetwork:
+    driver: bridge
+
