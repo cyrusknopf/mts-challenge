@@ -28,3 +28,5 @@
     - 
 
 - Baseline Python app for teams to get started
+
+- Gemini is free
