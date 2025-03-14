@@ -1,21 +1,4 @@
 # PRISM
-```
-           ____
-          /\   \        
-         /  \   \
-        /    \   \
-       /      \   \
-      /   /\   \   \
-     /   /  \   \   \
-    /   /    \   \   \
-   /   /    / \   \   \
-  /   /    /   \   \   \
- /   /    /---------'   \
-/   /    /_______________\
-\  /                     /
- \/_____________________/ 
-```
-
 
 ```
  ________________
@@ -36,3 +19,13 @@
 ```
 
 ## Meeting notes 14/3/25
+- PRISM : Portfolio Risk & Investing Stragegy Modelling
+
+
+
+- Server:
+    - HTTP
+    - API Keys
+    - 
+
+- Baseline Python app for teams to get started
