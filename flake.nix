@@ -30,6 +30,10 @@
 
                     tree
                     cbonsai
+
+                    (python3.withPackages(p : with p; [
+                      requests
+                    ]))
                   ];
                 shellHook = ''
                     export PATH=${pkgs.zsh}/bin:$PATH
