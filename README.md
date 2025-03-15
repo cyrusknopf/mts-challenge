@@ -19,14 +19,20 @@
 ```
 
 ## Meeting notes 14/3/25
+
 - PRISM : Portfolio Risk & Investing Stragegy Modelling
 
-
 - Server:
-    - HTTP
-    - API Keys
-    - 
+
+  - HTTP
+  - API Keys
+  -
 
 - Baseline Python app for teams to get started
 
 - Gemini is free
+
+# Docker instructions
+
+`docker compose up --build -d`
+`docker compose exec prism-server bash`
