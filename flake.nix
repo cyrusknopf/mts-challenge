@@ -23,6 +23,8 @@
                   [
                     zsh
 
+                    # nvidia-docker
+
                     go 
                     gopls
 

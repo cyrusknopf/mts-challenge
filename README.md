@@ -28,3 +28,9 @@
     - 
 
 - Baseline Python app for teams to get started
+
+
+
+# Docker instructions
+`docker compose up --build -d`
+`docker compose exec prism-server bash`
