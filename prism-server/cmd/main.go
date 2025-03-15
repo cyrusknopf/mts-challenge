@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	defaultPort    = 8080
-	defaultAddress = "localhost"
+	defaultPort    = 8082
+	defaultAddress = "0.0.0.0"
 )
 
 func main() {
