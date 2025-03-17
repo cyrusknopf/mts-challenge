@@ -1,15 +1,23 @@
-# Use the official TensorFlow GPU image (Ubuntu-based)
+# Build stage: use official Go 1.24.1 image
+FROM golang:1.24.1 as go-build
+WORKDIR /build
+
+# Final stage: start with TensorFlow GPU image
 FROM tensorflow/tensorflow:latest-gpu
 
-# Install Golang and build essentials
-RUN apt-get update && apt-get install -y golang-go build-essential
+# Install additional packages
+RUN apt-get update && apt-get install -y build-essential net-tools
 
-# Optional: Set up Go environment variables
+# Copy the Go installation and your binary from the build stage
+COPY --from=go-build /usr/local/go /usr/local/go
+
+# Set up Go environment variables
 ENV GOPATH=/go
 ENV PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 
 # Set working directory
-WORKDIR /workspace
+WORKDIR /workspace/src
+RUN go build cmd
 
-EXPOSE 8080
-CMD [ "bash" ]
+EXPOSE 8082
+CMD ["cmd/cmd", "-port", "8082"]
