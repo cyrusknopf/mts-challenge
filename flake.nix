@@ -25,6 +25,9 @@
 
                     # nvidia-docker
 
+
+                    bun
+
                     go 
                     gopls
 
