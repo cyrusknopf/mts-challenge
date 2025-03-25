@@ -31,6 +31,22 @@ services:
     stdin_open: true      # Keeps STDIN open (like -i)
     tty: true             # Allocates a TTY (like -t)
 
+  prism-website:
+    build: ./prism-website
+    platform: linux/amd64
+    container_name: prism-website
+    volumes:
+      - ./prism-website:/usr/src/app
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "3000:3000"
+    networks:
+      - prismnetwork
+    stdin_open: true      # Keeps STDIN open (like -i)
+    tty: true             # Allocates a TTY (like -t)
+    restart: unless-stopped
+
 volumes:
   pgdata:
 

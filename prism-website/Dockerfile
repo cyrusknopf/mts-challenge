@@ -13,14 +13,9 @@ FROM base AS build
 COPY --from=install /usr/src/app/node_modules ./node_modules
 COPY . .
 RUN mkdir -p .next && chown -R bun:bun .next
+
 RUN bun run build
-
-# Get npm or some shit XXX: Doesnt even work LOL
-# RUN bun add @next/swc-linux-arm64-musl
-# Try to install npm so we can get SWC typescript "compiler"
-# RUN apt-get update && apt install -y npm
-RUN npm install -D @swc/cli @swc/core
-
+RUN bun add -d @swc/cli @swc/core
 RUN mkdir -p /usr/src/app/.next && chown -R bun:bun /usr/src/app/.next
 
 # Final image for running the app
@@ -32,5 +27,4 @@ COPY --from=build /usr/src/app/src ./src
 COPY package.json bun.lock ./
 
 USER bun
-EXPOSE 3000
-ENTRYPOINT ["bun", "run", "dev"]
+ENTRYPOINT ["bun", "run", "build"]
