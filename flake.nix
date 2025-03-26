@@ -23,7 +23,10 @@
                   [
                     zsh
 
-                    # nvidia-docker
+                    nvidia-docker
+
+
+                    bun
 
                     go 
                     gopls

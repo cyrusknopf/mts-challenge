@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgresql:
@@ -11,6 +11,7 @@ services:
       POSTGRES_DB: "prism"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./prism-postgres_init:/docker-entrypoint-initdb.d
     networks:
       - prismnetwork
 
@@ -18,18 +19,34 @@ services:
     build: ./prism-server
     platform: linux/amd64
     container_name: prism-server
-    runtime: nvidia  # Requires NVIDIA Container Toolkit on the host for GPU access
+    runtime: nvidia # Requires NVIDIA Container Toolkit on the host for GPU access
     environment:
       NVIDIA_VISIBLE_DEVICES: all
     volumes:
-      - ./prism-server_data:/workspace/data 
-      - ./prism-server:/workspace/src      
+      - ./prism-server_data:/workspace/data
+      - ./prism-server:/workspace/src
     ports:
       - "8082:8082"
     networks:
       - prismnetwork
-    stdin_open: true      # Keeps STDIN open (like -i)
-    tty: true             # Allocates a TTY (like -t)
+    stdin_open: true # Keeps STDIN open (like -i)
+    tty: true # Allocates a TTY (like -t)
+
+  prism-website:
+    build: ./prism-website
+    platform: linux/amd64
+    container_name: prism-website
+    volumes:
+      - ./prism-website:/usr/src/app
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "3000:3000"
+    networks:
+      - prismnetwork
+    stdin_open: true # Keeps STDIN open (like -i)
+    tty: true # Allocates a TTY (like -t)
+    restart: unless-stopped
 
 volumes:
   pgdata:
@@ -37,4 +54,3 @@ volumes:
 networks:
   prismnetwork:
     driver: bridge
-
