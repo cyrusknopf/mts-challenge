@@ -9,7 +9,7 @@ export default function AboutPage() {
         <div className="home-nav fixed bottom-0 z-20 w-full">
           <div className="flex items-center justify-center gap-4">
             <AnimatedButton href="/" tabIndex={-1}>
-              Go Home
+              Home
             </AnimatedButton>
           </div>
         </div>

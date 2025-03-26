@@ -2,12 +2,12 @@ import { Pool } from 'pg';
 
 // Create a connection pool
 const pool = new Pool({
-  user: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
-  host: process.env.POSTGRES_HOST,
+  user: 'postgres',
+  password: 'l??pT-87pBqE2hN9-zY/)',
+  host: 'postgresql',
   port: parseInt(process.env.POSTGRES_PORT || '5432'),
-  database: process.env.POSTGRES_DB,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  database: 'prism',
+  ssl: false, // process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 // Function to query the database

@@ -6,7 +6,8 @@ import Logo from '@/components/ui/Logo';
 import AnimatedButton from '@/components/ui/AnimatedButton';
 import LeaderboardTable from '@/components/ui/LeaderboardTable';
 import { LeaderboardEntry } from '@/lib/db';
-import { generateMockLeaderboardData } from '@/lib/mockData';
+// Remove the import of POST from the API route
+// import { POST } from '../api/leaderboard/route';
 
 export default function LeaderboardPage() {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
@@ -15,37 +16,53 @@ export default function LeaderboardPage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
 
-  // Auto-refresh function
-  const loadMockData = () => {
+  // This function makes a POST request to your API endpoint
+  const loadData = async () => {
     setIsLoading(true);
     setError(null);
 
-    // Simulate API delay
-    setTimeout(() => {
-      const mockData = generateMockLeaderboardData();
+    try {
+      // Make a POST request to your API endpoint at /api/leaderboard.
+      // Adjust the request body as needed (here we send an empty object).
+      const res = await fetch('/api/leaderboard', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+      });
 
-      // Process data to add positions (calculated by the frontend instead of database)
-      const processedData = [...mockData].sort((a, b) =>
-        b.points - a.points || b.profit - a.profit
-      ).map((entry, index) => ({
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+
+      // Assume the API returns an array of leaderboard entries.
+      const apiData: LeaderboardEntry[] = await res.json();
+      // Map over each entry to parse position as int and profit as float.
+      const parsedData: LeaderboardEntry[] = apiData.map((entry) => ({
         ...entry,
-        position: index + 1
+        // If entry.position exists as a string, convert it. Otherwise, leave undefined.
+        position: entry.position !== undefined ? parseInt(String(entry.position), 10) : undefined,
+        profit: parseFloat(String(entry.profit)),
+        // Optionally, ensure points is a number too.
+        points: Number(entry.points)
       }));
 
-      setLeaderboardData(processedData);
+      setLeaderboardData(parsedData);
       setLastUpdated(new Date());
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
-  // Setup auto-refresh and initial data load
+  // Use useEffect to call loadData on mount and every 30 seconds
   useEffect(() => {
-    // Initial data load
-    loadMockData();
+    loadData();
 
-    // Set up 30-second interval for auto-refresh
     const interval = setInterval(() => {
-      loadMockData();
+      loadData();
     }, 30000);
 
     setRefreshInterval(interval);
@@ -59,7 +76,7 @@ export default function LeaderboardPage() {
   }, []);
 
   const refreshData = () => {
-    loadMockData();
+    loadData();
   };
 
   return (

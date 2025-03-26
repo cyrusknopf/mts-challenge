@@ -2,26 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { LeaderboardEntry } from '@/lib/db';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    const { user, password, host, port, database } = await request.json();
-
-    // Validate all required parameters are present
-    if (!host || !database || !user) {
-      return NextResponse.json(
-        { error: 'Missing required database configuration parameters' },
-        { status: 400 }
-      );
-    }
 
     // Create a new pool with the provided config
     const pool = new Pool({
-      user,
-      password,
-      host,
-      port: port ? parseInt(port) : 5432,
-      database,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      user: 'postgres',
+      password: 'l??pT-87pBqE2hN9-zY/)',
+      host: 'postgresql',
+      port: 5432,
+      database: 'prism',
+      ssl: false,
       // Short connection timeout to prevent hanging
       connectionTimeoutMillis: 5000,
     });

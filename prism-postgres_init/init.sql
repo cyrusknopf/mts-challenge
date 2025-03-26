@@ -2,8 +2,7 @@
 -- Execute this script to set up your database
 
 -- Create a database (uncomment and modify if you need to create the database)
--- CREATE DATABASE leaderboard;
--- \c leaderboard
+CREATE DATABASE leaderboard;
 
 -- Create the leaderboard_entries table
 CREATE TABLE IF NOT EXISTS leaderboard_entries (

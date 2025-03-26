@@ -11,7 +11,7 @@ export default function HomeNavigation() {
           Leaderboard
         </AnimatedButton>
         <AnimatedButton href="/about" tabIndex={-1}>
-          About Us
+          Information
         </AnimatedButton>
       </div>
     </div>
