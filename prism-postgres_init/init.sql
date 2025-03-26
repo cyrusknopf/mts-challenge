@@ -1,13 +1,23 @@
 -- SQL Setup Script for PRISM Leaderboard
 -- Execute this script to set up your database
 
+
+
+-- Tables for team persistence
+CREATE TABLE IF NOT EXISTS teams (
+    id SERIAL PRIMARY KEY,
+    api_key VARCHAR(100) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL
+);
+
+
 -- Create a database (uncomment and modify if you need to create the database)
 CREATE DATABASE leaderboard;
 
 -- Create the leaderboard_entries table
 CREATE TABLE IF NOT EXISTS leaderboard_entries (
-    id SERIAL PRIMARY KEY,
-    team_name VARCHAR(100) NOT NULL UNIQUE,
+    id INT PRIMARY KEY REFERENCES teams(id),
+    -- team_name VARCHAR(100) REGERENCES teams(name), FIXME:  Fix the query getting this
     points INTEGER NOT NULL DEFAULT 0,
     profit DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
     last_submission_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
