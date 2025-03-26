@@ -23,7 +23,7 @@
                   [
                     zsh
 
-                    # nvidia-docker
+                    nvidia-docker
 
 
                     bun

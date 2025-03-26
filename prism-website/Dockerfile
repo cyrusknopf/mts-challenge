@@ -6,7 +6,6 @@ WORKDIR /usr/src/app
 FROM base AS install
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
-RUN bun next telemetry disable
 
 # Copy the entire project and build
 FROM base AS build
@@ -27,4 +26,4 @@ COPY --from=build /usr/src/app/src ./src
 COPY package.json bun.lock ./
 
 USER bun
-ENTRYPOINT ["bun", "run", "build"]
+ENTRYPOINT ["bun", "run", "dev"]
