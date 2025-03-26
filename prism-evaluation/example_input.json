@@ -1,0 +1,17 @@
+{
+  "stocks": [
+    ["AAPL", 1],
+    ["MSFT", 2],
+    ["NVDA", 3],
+    ["PLTR", 3]
+  ],
+  "context": {
+    "start_date": "2023-01-01",
+    "end_date": "2024-01-01",
+    "budget": 100000,
+    "age": 10,
+    "employment_status": true,
+    "salary": 100000,
+    "dislikes": ["Technology"]
+  }
+}
