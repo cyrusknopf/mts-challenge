@@ -10,6 +10,21 @@ type Response struct {
 	Message string `json:"message"`
 }
 
+func GetHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed, GET only", http.StatusMethodNotAllowed)
+		return
+	}
+
+	apiKey := r.Header.Get("X-API-Code")
+	// FIXME: check this with many apis else error
+	if apiKey != "test" {
+		http.Error(w, "Unauthorized - invalid API key", http.StatusUnauthorized)
+		return
+	}
+
+}
+
 // postHandler handles POST requests to the /postpath endpoint.
 func PostHandler(w http.ResponseWriter, r *http.Request) {
 	// Only allow POST requests.
