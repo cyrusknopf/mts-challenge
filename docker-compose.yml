@@ -19,7 +19,7 @@ services:
     build: ./prism-server
     platform: linux/amd64
     container_name: prism-server
-    runtime: nvidia # Requires NVIDIA Container Toolkit on the host for GPU access
+    # runtime: nvidia # Requires NVIDIA Container Toolkit on the host for GPU access
     environment:
       NVIDIA_VISIBLE_DEVICES: all
     volumes:

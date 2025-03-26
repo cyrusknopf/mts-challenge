@@ -24,8 +24,7 @@
                     zsh
 
                     nvidia-docker
-
-
+                    nvidia-container-toolkit
                     bun
 
                     go 
