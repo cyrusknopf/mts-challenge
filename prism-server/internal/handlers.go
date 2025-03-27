@@ -38,7 +38,7 @@ func (h *Handlers) GetHandler(w http.ResponseWriter, r *http.Request) {
 		resp := Response{
 			Message: "Request accepted, payload: " + string(content),
 		}
-		// Write JSON response to reponse writer
+		// Write JSON response to response writer
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	} else {
