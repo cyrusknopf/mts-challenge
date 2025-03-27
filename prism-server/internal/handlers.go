@@ -29,6 +29,7 @@ func (h *Handlers) GetHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, "Database error - could not query DB: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	content := "Julie, 23, loves Nvidia"

@@ -26,8 +26,6 @@ EXPOSE 8082
 # Gets the variable passed by docker-compose
 # ARG POSTGRES_PWD
 
-RUN echo "POSTGRES_PWD is $POSTGRES_PWD"
-
 # Allows this env var to be accessed by the running container
 # ENV POSTGRES_PWD=${POSTGRES_PWD}
 
