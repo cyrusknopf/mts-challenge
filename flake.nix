@@ -27,6 +27,8 @@
                     nvidia-container-toolkit
                     bun
 
+                    postgresql_17
+
                     go 
                     gopls
 

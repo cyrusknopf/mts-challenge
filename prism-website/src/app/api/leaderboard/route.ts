@@ -29,7 +29,7 @@ export async function POST() {
           points,
           profit,
           last_submission_time
-        FROM leaderboard_entries
+        FROM teams
         ORDER BY points DESC, profit DESC
         LIMIT 10
       `);

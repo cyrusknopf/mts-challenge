@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   postgresql:
     image: postgres:14
@@ -16,12 +14,16 @@ services:
       - prismnetwork
 
   prism-server:
-    build: ./prism-server
+    build:
+      context: ./prism-server
+      args:
+        POSTGRES_PWD: $POSTGRES_PWD
     platform: linux/amd64
     container_name: prism-server
     # runtime: nvidia # Requires NVIDIA Container Toolkit on the host for GPU access
     environment:
       NVIDIA_VISIBLE_DEVICES: all
+      POSTGRES_PWD: $POSTGRES_PWD
     volumes:
       - ./prism-server_data:/workspace/data
       - ./prism-server:/workspace/src

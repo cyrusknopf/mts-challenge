@@ -36,8 +36,11 @@ func main() {
 		return
 	}
 
+	handlers := internal.NewHandlers(&db)
+
 	// HTTP Handler for client answers.
-	http.HandleFunc("/submit", internal.PostHandler)
+	http.HandleFunc("/submit", handlers.PostHandler)
+	http.HandleFunc("/request", handlers.GetHandler)
 	log.Printf("Starting server on port %d", *port)
 	net := fmt.Sprintf("%s:%d", *addr, *port)
 	if err := http.ListenAndServe(net, nil); err != nil {
