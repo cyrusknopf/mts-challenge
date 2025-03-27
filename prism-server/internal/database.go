@@ -32,9 +32,9 @@ func (db *Database) Connect(password string) error {
 }
 
 func (db *Database) Query(query string, args ...any) (*sql.Rows, error) {
-	return db.conn.Query(query)
+	return db.conn.Query(query, args...)
 }
 
 func (db *Database) QueryRow(query string, args ...any) (*sql.Row, error) {
-	return db.conn.QueryRow(query), nil
+	return db.conn.QueryRow(query, args...), nil
 }
