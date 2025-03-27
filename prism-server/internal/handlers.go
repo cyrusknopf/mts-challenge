@@ -32,9 +32,9 @@ func (h *Handlers) GetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	content := "Julie, 23, loves Nvidia"
-
+	// FIXME: Generate and return response
 	if validKey {
+		content := "Julie, 23, loves Nvidia"
 		resp := Response{
 			Message: "Request accepted, payload: " + string(content),
 		}
@@ -47,7 +47,7 @@ func (h *Handlers) GetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // postHandler handles POST requests to the /postpath endpoint.
-func (_ *Handlers) PostHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) PostHandler(w http.ResponseWriter, r *http.Request) {
 	// Only allow POST requests.
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -55,14 +55,20 @@ func (_ *Handlers) PostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check for the API code in the header "X-API-Code".
-	// FIXME: check this with many apis else error
 	apiKey := r.Header.Get("X-API-Code")
-	if apiKey != "test" {
-		http.Error(w, "Unauthorized - invalid API key", http.StatusUnauthorized)
+	validKey, err := ValidateApiKey(apiKey, h.db)
+
+	if err != nil {
+		http.Error(w, "Database error - could not query DB: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	// Stop unused complaining
+	if validKey {
+	}
+
 	// Read the request body.
+	// FIXME: Handle request body
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Bad request", http.StatusBadRequest)
