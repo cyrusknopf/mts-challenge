@@ -3,6 +3,8 @@ FROM golang:1.24.1 AS go-build
 
 ARG POSTGRES_PWD
 
+ENV POSTGRES_PWD = $POSTGRES_PWD
+
 WORKDIR /build
 
 # Copy the entire project into the container
