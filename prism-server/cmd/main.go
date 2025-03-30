@@ -36,9 +36,8 @@ func main() {
 		return
 	}
 
-    // Map API keys to contexts from requests
-    user_context := make(map[string]*internal.RequestContext)
-
+	// Map API keys to contexts from requests
+	user_context := make(map[string]*internal.RequestContext)
 
 	handlers := internal.NewHandlers(&db, user_context)
 
