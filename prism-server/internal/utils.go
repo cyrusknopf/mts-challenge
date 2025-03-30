@@ -1,6 +1,20 @@
 package internal
 
-import "fmt"
+import  (
+    "fmt"
+    "time"
+)
+
+type RequestContext struct {
+    timestamp time.Time
+    startDate string
+    endDate string
+    age int
+    employmentStatus bool
+    salary float32
+    budget float32
+    dislikes []string
+}
 
 func ValidateApiKey(api_key string, db *Database) (bool, error) {
 	var exists bool

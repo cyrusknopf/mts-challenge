@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+    "time"
 )
 
 type Response struct {
@@ -12,12 +13,14 @@ type Response struct {
 
 type Handlers struct {
 	db *Database
+    userContext map[string]*RequestContext // XXX: Using large string as hash might be bad
 }
 
-func NewHandlers(db *Database) Handlers {
-	return Handlers{db}
+func NewHandlers(db *Database, uc map[string]*RequestContext) Handlers {
+	return Handlers{db, uc}
 }
 
+// TODO: Handle context management 
 func (h *Handlers) GetHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed, GET only", http.StatusMethodNotAllowed)
@@ -32,21 +35,37 @@ func (h *Handlers) GetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// FIXME: Generate and return response
-	if validKey {
-		content := "Julie, 23, loves Nvidia"
-		resp := Response{
-			Message: "Request accepted, payload: " + string(content),
-		}
-		// Write JSON response to response writer
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
-	} else {
+	if !validKey {
 		http.Error(w, "Unauthorized - invalid API key", http.StatusUnauthorized)
-	}
+    }
+	// FIXME: Generate and return response
+    // generate random context
+    randomContext := RequestContext{
+        timestamp: time.Now(),
+        startDate: "01-01-01",
+        endDate: "02-01-01",
+        age: 30,
+        employmentStatus: false,
+        salary: 30000.00,
+        budget: 30000.00,
+        dislikes: []string{"gala", "leather jackets"},
+    }
+
+    // map it to user
+    h.userContext[apiKey] = &randomContext
+
+    // generate text based on context
+    content := "Julie, 23, loves Nvidia"
+    resp := Response {
+        Message: "Request accepted, payload: " + string(content),
+    }
+    // Write JSON response to response writer
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(resp)
 }
 
-// postHandler handles POST requests to the /postpath endpoint.
+// postHandler handles POST requests to the /postpath endpoint.?
+// TODO: Handle context management 
 func (h *Handlers) PostHandler(w http.ResponseWriter, r *http.Request) {
 	// Only allow POST requests.
 	if r.Method != http.MethodPost {
@@ -63,10 +82,12 @@ func (h *Handlers) PostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Stop unused complaining
-	if validKey {
+	if !validKey {
+		http.Error(w, "Unauthorized - invalid API key", http.StatusUnauthorized)
 	}
 
+    thisUserContext := h.userContext[apiKey]
+    
 	// Read the request body.
 	// FIXME: Handle request body
 	body, err := io.ReadAll(r.Body)

@@ -28,7 +28,7 @@ func main() {
 	ppwd := flag.String("ppwd", "", "Postgres password")
 	flag.Parse()
 
-	// Establish connection to a know postgres server.
+	// Establish connection to a known postgres server.
 	db := internal.NewDatabase(*paddr, *pport, *puser, *pdb)
 	err := db.Connect(*ppwd)
 	if err != nil {
@@ -36,7 +36,11 @@ func main() {
 		return
 	}
 
-	handlers := internal.NewHandlers(&db)
+    // Map API keys to contexts from requests
+    user_context := make(map[string]*internal.RequestContext)
+
+
+	handlers := internal.NewHandlers(&db, user_context)
 
 	// HTTP Handler for client answers.
 	http.HandleFunc("/submit", handlers.PostHandler)

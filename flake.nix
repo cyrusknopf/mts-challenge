@@ -23,8 +23,8 @@
                   [
                     zsh
 
-                    nvidia-docker
-                    nvidia-container-toolkit
+                    # nvidia-docker
+                    # nvidia-container-toolkit
                     bun
 
                     postgresql_17
