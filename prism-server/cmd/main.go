@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"mtschal/internal"
 )
@@ -37,9 +38,9 @@ func main() {
 	}
 
 	// Map API keys to contexts from requests
-	user_context := make(map[string]*internal.RequestContext)
+	userContext := make(map[string]*internal.RequestContext)
 
-	handlers := internal.NewHandlers(&db, user_context)
+	handlers := internal.NewHandlers(&db, userContext, 10*time.Second)
 
 	// HTTP Handler for client answers.
 	http.HandleFunc("/submit", handlers.PostHandler)

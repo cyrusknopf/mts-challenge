@@ -35,4 +35,4 @@ EXPOSE 8082
 
 # Don't use JSON, instead raw shell to get env vars
 # CMD ["/bin/sh", "-c", "/app -port 8082 -ppwd $POSTGRES_PWD"]
-CMD /app -port 8082 -ppwd $POSTGRES_PWD
+CMD /app -port 8082 -ppwd "$POSTGRES_PWD"
