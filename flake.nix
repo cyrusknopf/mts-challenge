@@ -37,6 +37,10 @@
                     tree
                     cbonsai
 
+                    kubectl
+                    kompose
+                    minikube
+
                     (python3.withPackages(p : with p; [
                       requests
                     ]))
