@@ -1,0 +1,55 @@
+apiVersion: v1
+data:
+  Dockerfile: |
+    # Build stage: use official Go 1.24.1 image
+    FROM golang:1.24.1 AS go-build
+
+    ARG POSTGRES_PWD
+
+    WORKDIR /build
+
+    # Copy the entire project into the container
+    COPY . .
+
+    # Build the Go application; adjust the path to your main package as needed
+    RUN go build -o /app ./cmd
+
+    # Final stage: start with TensorFlow GPU image
+    FROM tensorflow/tensorflow:latest-gpu
+
+    # Install additional packages
+    RUN apt-get update && apt-get install -y build-essential net-tools
+
+    # Copy the compiled binary from the build stage
+    COPY --from=go-build /app /app
+
+    # Expose the application port
+    EXPOSE 8082
+
+    # Gets the variable passed by docker-compose
+    # ARG POSTGRES_PWD
+
+    # Allows this env var to be accessed by the running container
+    # ENV POSTGRES_PWD=${POSTGRES_PWD}
+
+    # Command to run the application
+    # CMD ["/app", "-port", "8082", "-ppwd", "$POSTGRES_PWD"]
+    # CMD ["/app", "-port", "8082"]
+
+    # Don't use JSON, instead raw shell to get env vars
+    # CMD ["/bin/sh", "-c", "/app -port 8082 -ppwd $POSTGRES_PWD"]
+    CMD /app -port 8082 -ppwd "$POSTGRES_PWD"
+  go.mod: |
+    module mtschal
+
+    go 1.24.1
+
+    require github.com/lib/pq v1.10.9
+  go.sum: |
+    github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
+    github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: prism-server
+  name: prism-server-cm1

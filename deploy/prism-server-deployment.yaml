@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -o out
+    kompose.version: 1.35.0 (HEAD)
+  labels:
+    io.kompose.service: prism-server
+  name: prism-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: prism-server
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -o out
+        kompose.version: 1.35.0 (HEAD)
+      labels:
+        io.kompose.service: prism-server
+    spec:
+      containers:
+        - env:
+            - name: NVIDIA_VISIBLE_DEVICES
+              value: all
+            - name: POSTGRES_PWD
+              value: l??pT-87pBqE2hN9-zY/)
+          image: cyrusknopf/prism-server:latest
+          name: prism-server
+          ports:
+            - containerPort: 8082
+              protocol: TCP
+          stdin: true
+          tty: true
+          volumeMounts:
+            - mountPath: /workspace/data
+              name: prism-server-claim0
+            - mountPath: /workspace/src
+              name: prism-server-cm1
+      restartPolicy: Always
+      volumes:
+        - name: prism-server-claim0
+          persistentVolumeClaim:
+            claimName: prism-server-claim0
+        - configMap:
+            name: prism-server-cm1
+          name: prism-server-cm1
