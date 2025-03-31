@@ -13,6 +13,7 @@ import (
 const (
 	defaultPort             = 8082
 	defaultAddress          = "0.0.0.0"
+	defaultEvaluationDir    = "/workspace/eval"
 	defaultPostgresUser     = "postgres"
 	defaultPostgresAddress  = "postgresql"
 	defaultPostgresPort     = 5432
@@ -27,6 +28,8 @@ func main() {
 	pdb := flag.String("pdb", defaultPostgresDatabase, "Postgres database name")
 	puser := flag.String("puser", defaultPostgresUser, "Postgres username")
 	ppwd := flag.String("ppwd", "", "Postgres password")
+	apikey := flag.String("apikey", "", "Api key for polygon")
+	evalDir := flag.String("eval-dir", defaultEvaluationDir, "Evaluation directory path")
 	flag.Parse()
 
 	// Establish connection to a known postgres server.
@@ -40,7 +43,7 @@ func main() {
 	// Map API keys to contexts from requests
 	userContext := make(map[string]*internal.RequestContext)
 
-	handlers := internal.NewHandlers(&db, userContext, 10*time.Second)
+	handlers := internal.NewHandlers(&db, userContext, 10*time.Second, *evalDir, *apikey)
 
 	// HTTP Handler for client answers.
 	http.HandleFunc("/submit", handlers.PostHandler)

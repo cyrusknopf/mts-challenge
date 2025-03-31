@@ -2,10 +2,13 @@ package internal
 
 import (
 	"encoding/json"
+	"fmt"
 	"maps"
 	"math"
 	"math/rand/v2"
 	"net/http"
+	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -18,14 +21,16 @@ type WeightedStock struct {
 	Quantity uint   `json:"quantity"`
 }
 
-type Handlers struct {
+type HandlersConfig struct {
 	db          *Database
 	userContext map[string]*RequestContext // XXX: Using large string as hash might be bad
 	timeToLive  time.Duration
+	evalDir     string
+	apiKey      string
 }
 
-func NewHandlers(db *Database, uc map[string]*RequestContext, timeToLive time.Duration) Handlers {
-	return Handlers{db, uc, timeToLive}
+func NewHandlers(db *Database, uc map[string]*RequestContext, timeToLive time.Duration, evalDir string, apiKey string) HandlersConfig {
+	return HandlersConfig{db, uc, timeToLive, evalDir, apiKey}
 }
 
 // Note, that hitting this endpoint over-writes previous RequestContext.
@@ -33,7 +38,7 @@ func NewHandlers(db *Database, uc map[string]*RequestContext, timeToLive time.Du
 // to the right piece of context.
 // TODO: Think about whether we need to force users to only compete from one device, to avoid race conditions.
 // TODO: Handle context management
-func (h *Handlers) GetHandler(w http.ResponseWriter, r *http.Request) {
+func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed, only GET allowed", http.StatusMethodNotAllowed)
 		return
@@ -87,8 +92,8 @@ func (h *Handlers) GetHandler(w http.ResponseWriter, r *http.Request) {
 
 	randomContext := RequestContext{
 		Timestamp:        time.Now(),
-		StartDate:        startDate.Local().Local().String(),
-		EndDate:          endDate.Local().String(),
+		StartDate:        startDate.Local().Format(time.RFC3339),
+		EndDate:          endDate.Local().Format(time.RFC3339),
 		Age:              rand.IntN(MAX_AGE-MIN_AGE) + MIN_AGE,
 		EmploymentStatus: employed,
 		Salary:           salary,
@@ -117,9 +122,21 @@ func (h *Handlers) GetHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(content)
 }
 
+type EvaluationData struct {
+	Context *RequestContext `json:"context"`
+	Stocks  []WeightedStock `json:"stocks"`
+}
+
+type EvaluationResponse struct {
+	Passed bool    `json:"passed"`
+	Profit float64 `json:"profit"`
+	Points float64 `json:"points"`
+	Error  string  `json:"error"`
+}
+
 // @cyrus wym by this?
 // TODO: Handle context management
-func (h *Handlers) PostHandler(w http.ResponseWriter, r *http.Request) {
+func (h *HandlersConfig) PostHandler(w http.ResponseWriter, r *http.Request) {
 	// Only allow POST requests.
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -164,27 +181,67 @@ func (h *Handlers) PostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `Poorly formatted input.
 
 Example expected format:
-[{"ticker": "AAPL", "quantity": 1}, {"ticker": "MSFT", quantity: 10}]`, http.StatusBadRequest)
+[{"ticker": "AAPL", "quantity": 1}, {"ticker": "MSFT", "quantity": 10}]`, http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
 
 	// For now, just respond with the same values.
-	// TODO: This should go away.
-	stocksStr, err := json.Marshal(stocks)
+	evalData := EvaluationData{Stocks: stocks, Context: userContext}
+	evalDataStr, err := json.Marshal(evalData)
 	if err != nil {
 		http.Error(w, "Unable to marshal weighted stock list. If you see this error, please contact an event administrator.", http.StatusInternalServerError)
 		return
 	}
 
 	// FIXME: Evaluation left.
+	var out strings.Builder
+	subproc := exec.Command("/usr/bin/python",
+		fmt.Sprintf("%s/main.py", h.evalDir),
+		"--apikey", h.apiKey,
+		"--basedir", h.evalDir,
+	)
+	subproc.Stdin = strings.NewReader(string(evalDataStr))
+	subproc.Stdout = &out
+	subproc.Stderr = &out
+	if err = subproc.Run(); err != nil {
+		http.Error(w, "Error during evaluation.", http.StatusInternalServerError)
+		return
+	}
 
-	// resp := Response{
-	// 	Message: "Request accepted, payload: " + string(stocksStr)
-	// }
+	var response EvaluationResponse
+	err = json.Unmarshal([]byte(out.String()), &response)
+	if err != nil {
+		http.Error(w, "Error during unmarshalling.", http.StatusInternalServerError)
+		return
+	}
+
+	if !response.Passed {
+		if len(response.Error) > 0 {
+			// Penalise profit and points to 0.95%.
+			_, err = h.db.Exec("UPDATE teams SET profit = profit * 0.95, points = points * 0.95, last_submission_time = NOW() WHERE api_key = $1", apiKey)
+			if err != nil {
+				fmt.Printf("%v\n", err)
+				http.Error(w, "An error was encountered updating the database, please reach out to the administrator if this keeps happening.", http.StatusInternalServerError)
+				return
+			}
+			// Respond accordingly to tell them they fucked up.
+			http.Error(w, fmt.Sprintf("Error encountered while evaluation of input: [%s]. This is most likely a you problem. ", response.Error), http.StatusTeapot)
+			return
+		} else {
+			fmt.Printf("%v\n", err)
+			http.Error(w, "Error encountered while evaluation of input, but no information was provided about the error. Please reach out to the administrator if this persists.\n", http.StatusTeapot)
+			return
+		}
+	}
+
+	_, err = h.db.Exec("UPDATE teams SET profit = profit + $1, points = points + $2, last_submission_time = NOW() WHERE api_key = $3", response.Profit, response.Points, apiKey)
+	if err != nil {
+		http.Error(w, "An error was encountered updating the database, please reach out to the administrator if this keeps happening.", http.StatusInternalServerError)
+		return
+	}
 
 	// Respond with JSON.
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(stocksStr)
-	// json.NewEncoder(w).Encode(resp)
+	w.Write([]byte(out.String()))
 }

@@ -38,3 +38,7 @@ func (db *Database) Query(query string, args ...any) (*sql.Rows, error) {
 func (db *Database) QueryRow(query string, args ...any) (*sql.Row, error) {
 	return db.conn.QueryRow(query, args...), nil
 }
+
+func (db *Database) Exec(query string, args ...any) (sql.Result, error) {
+	return db.conn.Exec(query, args...)
+}

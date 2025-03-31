@@ -27,6 +27,7 @@ services:
     volumes:
       - ./prism-server_data:/workspace/data
       - ./prism-server:/workspace/src
+      - ./prism-evaluation:/workspace/eval
     ports:
       - "8082:8082"
     networks:
