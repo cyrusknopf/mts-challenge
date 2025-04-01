@@ -18,9 +18,11 @@ const (
 	defaultPostgresAddress  = "postgresql"
 	defaultPostgresPort     = 5432
 	defaultPostgresDatabase = "prism"
+	defaultTTL              = 10
 )
 
 func main() {
+	ttl := flag.Int("ttl", defaultTTL, fmt.Sprintf("Time to live, default %d", defaultTTL))
 	addr := flag.String("addr", defaultAddress, "Server address to bind to")
 	port := flag.Int("port", defaultPort, "Server port to listen on")
 	paddr := flag.String("paddr", defaultPostgresAddress, "Postgres address")
@@ -43,7 +45,7 @@ func main() {
 	// Map API keys to contexts from requests
 	userContext := make(map[string]*internal.RequestContext)
 
-	handlers := internal.NewHandlers(&db, userContext, 10*time.Second, *evalDir, *apikey)
+	handlers := internal.NewHandlers(&db, userContext, time.Duration(*ttl)*time.Second, *evalDir, *apikey)
 
 	// HTTP Handler for client answers.
 	http.HandleFunc("/submit", handlers.PostHandler)
