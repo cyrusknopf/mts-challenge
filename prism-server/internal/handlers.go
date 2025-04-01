@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os/exec"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -22,15 +23,16 @@ type WeightedStock struct {
 }
 
 type HandlersConfig struct {
-	db          *Database
-	userContext map[string]*RequestContext // XXX: Using large string as hash might be bad
-	timeToLive  time.Duration
-	evalDir     string
-	apiKey      string
+	db               *Database
+	userContext      map[string]*RequestContext // XXX: Using large string as hash might be bad
+	userContextMutex sync.RWMutex
+	timeToLive       time.Duration
+	evalDir          string
+	apiKey           string
 }
 
 func NewHandlers(db *Database, uc map[string]*RequestContext, timeToLive time.Duration, evalDir string, apiKey string) HandlersConfig {
-	return HandlersConfig{db, uc, timeToLive, evalDir, apiKey}
+	return HandlersConfig{db, uc, sync.RWMutex{}, timeToLive, evalDir, apiKey}
 }
 
 // Note, that hitting this endpoint over-writes previous RequestContext.
@@ -102,7 +104,9 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Map context to the individual user, identified by their API token.
+	h.userContextMutex.Lock()
 	h.userContext[apiKey] = &randomContext
+	h.userContextMutex.Unlock()
 
 	// Generate LLM based text. For now, it JSONs the values.
 	content, err := json.Marshal(randomContext)
@@ -157,9 +161,11 @@ func (h *HandlersConfig) PostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.userContextMutex.Lock()
 	userContext, ok := h.userContext[apiKey]
 	// Remove key from map, as it has been consumed now. On error, ignores.
 	delete(h.userContext, apiKey)
+	h.userContextMutex.Unlock()
 
 	// Check whether they have requested the context before.
 	if !ok {
