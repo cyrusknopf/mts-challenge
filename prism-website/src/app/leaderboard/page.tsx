@@ -81,51 +81,53 @@ export default function LeaderboardPage() {
 
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 pt-16 md:pt-24">
-        <div className="mb-8 flex justify-between items-center">
-          <Logo variant="full" />
-          <div className="text-sm text-nova-light">
-            {lastUpdated && (
-              <div className="flex items-center">
-                <span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
-                <div className="ml-2 h-2 w-2 rounded-full bg-green-400 animate-pulse"></div>
-                <span className="ml-2 text-xs text-gray-400">(Auto-refresh every 30s)</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="mb-8">
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-light">Trading Competition Leaderboard</h1>
-            <div className="flex space-x-4">
-              <AnimatedButton onClick={refreshData} className="w-auto px-4">
-                Refresh
-              </AnimatedButton>
+      <div className="min-h-screen overflow-y-auto">
+        <div className="container mx-auto px-4 pt-16 md:pt-24">
+          <div className="mb-8 flex justify-between items-center">
+            <Logo variant="full" />
+            <div className="text-sm text-nova-light">
+              {lastUpdated && (
+                <div className="flex items-center">
+                  <span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
+                  <div className="ml-2 h-2 w-2 rounded-full bg-green-400 animate-pulse"></div>
+                  <span className="ml-2 text-xs text-gray-400">(Auto-refresh every 30s)</span>
+                </div>
+              )}
             </div>
           </div>
 
-          {error && (
-            <div className="mt-4 p-4 bg-red-900/50 border border-red-800 rounded-md text-white">
-              {error}
-            </div>
-          )}
-
-          <div className="mt-8">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-pulse text-nova-light">Loading...</div>
+          <div className="mb-8">
+            <div className="flex justify-between items-center">
+              <h1 className="text-3xl font-light">PRISM Leaderboard</h1>
+              <div className="flex space-x-4">
+                <AnimatedButton onClick={refreshData} className="w-auto px-4">
+                  Refresh
+                </AnimatedButton>
               </div>
-            ) : (
-              <LeaderboardTable entries={leaderboardData} />
-            )}
-          </div>
-        </div>
+            </div>
 
-        <div className="mb-12">
-          <AnimatedButton href="/" className="mb-16">
-            go back
-          </AnimatedButton>
+            {error && (
+              <div className="mt-4 p-4 bg-red-900/50 border border-red-800 rounded-md text-white">
+                {error}
+              </div>
+            )}
+
+            <div className="mt-8">
+              {isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-pulse text-nova-light">Loading...</div>
+                </div>
+              ) : (
+                <LeaderboardTable entries={leaderboardData} />
+              )}
+            </div>
+          </div>
+
+          <div className="mb-12">
+            <AnimatedButton href="/" className="mb-16">
+              go back
+            </AnimatedButton>
+          </div>
         </div>
       </div>
     </MainLayout>

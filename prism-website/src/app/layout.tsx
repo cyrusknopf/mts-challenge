@@ -3,8 +3,8 @@ import "./globals.css";
 import ClientBody from "./ClientBody";
 
 export const metadata: Metadata = {
-  title: "PRISM Leaderboard",
-  description: "PRISM Trading Competition Leaderboard",
+  title: "PRISM - Portfolio Risk and Investment Strategy Management",
+  description: "PRISM Competition Leaderboard",
 };
 
 export default function RootLayout({

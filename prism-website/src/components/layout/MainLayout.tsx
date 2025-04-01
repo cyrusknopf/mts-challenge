@@ -9,7 +9,7 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   return (
-    <main className="relative h-screen w-full overflow-hidden">
+    <main className="relative h-screen w-full overflow-y-auto">
       <VideoBackground src="/videos/desktop-bg.mp4" />
       <div className="relative z-10">
         {children}
