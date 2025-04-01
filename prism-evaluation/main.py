@@ -2,6 +2,7 @@ import argparse
 import dataclasses
 import json
 import sys
+import warnings
 from dataclasses import dataclass
 from datetime import datetime
 from pprint import pprint
@@ -12,6 +13,8 @@ import numpy as np
 import pandas as pd
 from numpy.polynomial.legendre import legadd
 from polygon import ReferenceClient, StocksClient
+
+warnings.filterwarnings("ignore")
 
 
 @dataclass

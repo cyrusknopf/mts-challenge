@@ -205,6 +205,7 @@ Example expected format:
 	subproc.Stdout = &out
 	subproc.Stderr = &out
 	if err = subproc.Run(); err != nil {
+		fmt.Printf("error: %v\n", err)
 		http.Error(w, "Error during evaluation.", http.StatusInternalServerError)
 		return
 	}
@@ -212,6 +213,7 @@ Example expected format:
 	var response EvaluationResponse
 	err = json.Unmarshal([]byte(out.String()), &response)
 	if err != nil {
+		fmt.Printf("error: %v\n", err)
 		http.Error(w, "Error during unmarshalling.", http.StatusInternalServerError)
 		return
 	}
@@ -229,7 +231,6 @@ Example expected format:
 			http.Error(w, fmt.Sprintf("Error encountered while evaluation of input: [%s]. This is most likely a you problem. ", response.Error), http.StatusTeapot)
 			return
 		} else {
-			fmt.Printf("%v\n", err)
 			http.Error(w, "Error encountered while evaluation of input, but no information was provided about the error. Please reach out to the administrator if this persists.\n", http.StatusTeapot)
 			return
 		}
@@ -237,6 +238,7 @@ Example expected format:
 
 	_, err = h.db.Exec("UPDATE teams SET profit = profit + $1, points = points + $2, last_submission_time = NOW() WHERE api_key = $3", response.Profit, response.Points, apiKey)
 	if err != nil {
+		fmt.Printf("%v\n", err)
 		http.Error(w, "An error was encountered updating the database, please reach out to the administrator if this keeps happening.", http.StatusInternalServerError)
 		return
 	}

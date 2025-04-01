@@ -24,6 +24,7 @@ services:
     environment:
       NVIDIA_VISIBLE_DEVICES: all
       POSTGRES_PWD: "l??pT-87pBqE2hN9-zY/)"
+      POLYGON_API_KEY: ${POLYGON_API_KEY}
     volumes:
       - ./prism-server_data:/workspace/data
       - ./prism-server:/workspace/src
