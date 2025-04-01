@@ -45,7 +45,7 @@ services:
     environment:
       - NODE_ENV=production
     ports:
-      - "3000:3000"
+      - "80:80"
     networks:
       - prismnetwork
     stdin_open: true # Keeps STDIN open (like -i)
