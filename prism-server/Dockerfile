@@ -4,7 +4,6 @@ FROM golang:1.24.1 AS go-build
 ARG POSTGRES_PWD
 
 WORKDIR /build
-
 # Copy the entire project into the container
 COPY . .
 
@@ -23,6 +22,8 @@ COPY --from=go-build /app /app
 # Expose the application port
 EXPOSE 8082
 
+RUN python -m pip install pandas numpy polygon
+
 # Gets the variable passed by docker-compose
 # ARG POSTGRES_PWD
 
@@ -35,4 +36,4 @@ EXPOSE 8082
 
 # Don't use JSON, instead raw shell to get env vars
 # CMD ["/bin/sh", "-c", "/app -port 8082 -ppwd $POSTGRES_PWD"]
-CMD /app -port 8082 -ppwd "$POSTGRES_PWD"
+CMD /app -port 8082 -ppwd "$POSTGRES_PWD" -eval-dir /workspace/eval -apikey "$POLYGON_API_KEY"

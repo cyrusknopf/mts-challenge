@@ -17,16 +17,18 @@ services:
     build:
       context: ./prism-server
       args:
-        POSTGRES_PWD: $POSTGRES_PWD
+        POSTGRES_PWD: "l??pT-87pBqE2hN9-zY/)"
     platform: linux/amd64
     container_name: prism-server
     # runtime: nvidia # Requires NVIDIA Container Toolkit on the host for GPU access
     environment:
       NVIDIA_VISIBLE_DEVICES: all
-      POSTGRES_PWD: $POSTGRES_PWD
+      POSTGRES_PWD: "l??pT-87pBqE2hN9-zY/)"
+      POLYGON_API_KEY: ${POLYGON_API_KEY}
     volumes:
       - ./prism-server_data:/workspace/data
       - ./prism-server:/workspace/src
+      - ./prism-evaluation:/workspace/eval
     ports:
       - "8082:8082"
     networks:

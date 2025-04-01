@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"mtschal/internal"
 )
@@ -12,13 +13,16 @@ import (
 const (
 	defaultPort             = 8082
 	defaultAddress          = "0.0.0.0"
+	defaultEvaluationDir    = "/workspace/eval"
 	defaultPostgresUser     = "postgres"
 	defaultPostgresAddress  = "postgresql"
 	defaultPostgresPort     = 5432
 	defaultPostgresDatabase = "prism"
+	defaultTTL              = 10
 )
 
 func main() {
+	ttl := flag.Int("ttl", defaultTTL, fmt.Sprintf("Time to live, default %d", defaultTTL))
 	addr := flag.String("addr", defaultAddress, "Server address to bind to")
 	port := flag.Int("port", defaultPort, "Server port to listen on")
 	paddr := flag.String("paddr", defaultPostgresAddress, "Postgres address")
@@ -26,9 +30,11 @@ func main() {
 	pdb := flag.String("pdb", defaultPostgresDatabase, "Postgres database name")
 	puser := flag.String("puser", defaultPostgresUser, "Postgres username")
 	ppwd := flag.String("ppwd", "", "Postgres password")
+	apikey := flag.String("apikey", "", "Api key for polygon")
+	evalDir := flag.String("eval-dir", defaultEvaluationDir, "Evaluation directory path")
 	flag.Parse()
 
-	// Establish connection to a know postgres server.
+	// Establish connection to a known postgres server.
 	db := internal.NewDatabase(*paddr, *pport, *puser, *pdb)
 	err := db.Connect(*ppwd)
 	if err != nil {
@@ -36,7 +42,10 @@ func main() {
 		return
 	}
 
-	handlers := internal.NewHandlers(&db)
+	// Map API keys to contexts from requests
+	userContext := make(map[string]*internal.RequestContext)
+
+	handlers := internal.NewHandlers(&db, userContext, time.Duration(*ttl)*time.Second, *evalDir, *apikey)
 
 	// HTTP Handler for client answers.
 	http.HandleFunc("/submit", handlers.PostHandler)

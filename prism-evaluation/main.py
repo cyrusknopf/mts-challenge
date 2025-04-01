@@ -2,8 +2,11 @@ import argparse
 import dataclasses
 import json
 import sys
+import warnings
 from dataclasses import dataclass
+from datetime import datetime
 from pprint import pprint
+from time import sleep, time
 from typing import Any, Dict, List, Set, Tuple, Union
 
 import numpy as np
@@ -11,28 +14,30 @@ import pandas as pd
 from numpy.polynomial.legendre import legadd
 from polygon import ReferenceClient, StocksClient
 
+warnings.filterwarnings("ignore")
+
 
 @dataclass
 class Context:
     """Context struct"""
 
-    start_date: str
-    end_date: str
+    timestamp: str
+    start: str
+    end: str
     age: int
-    employment_status: bool
+    employed: bool
     salary: float
     budget: float
     dislikes: set
 
 
 def get_tickers_agg_bars(
-    client: StocksClient, data: List[Tuple[str, int]], start_date: str, end_date: str
+    client: StocksClient, data: List[Tuple[str, int]], start: str, end: str
 ) -> pd.DataFrame | None:
     df = pd.DataFrame(None, columns=["ticker", "v", "vw", "o", "c", "h", "l", "t", "n"])
-
     for ticker, qty in data:
         bars = client.get_aggregate_bars(
-            ticker, from_date=start_date, to_date=end_date, timespan="day"
+            ticker, from_date=start, to_date=end, timespan="day"
         )
         if "results" not in bars:
             return None
@@ -67,13 +72,9 @@ def is_industry_in_dislikes(
 def sharpe(
     df: pd.DataFrame,
     context: Context,
+    rates: pd.DataFrame,
     days: int = 252,
-    risk_free_file: str = "./bond-rate.csv",
 ):
-    # Load and prepare the rates DataFrame
-    rates = pd.read_csv(risk_free_file)
-    rates.set_index("date", inplace=True)
-    rates.index = pd.to_datetime(rates.index)
 
     # Group the values; this returns a Series
     values = df.groupby(level=0)["value"].apply(lambda x: x.sum())
@@ -100,16 +101,12 @@ def sharpe(
 def sortino(
     df: pd.DataFrame,
     context: Context,
+    rates: pd.DataFrame,
     days: int = 252,
-    risk_free_file: str = "./bond-rate.csv",
 ):
     """
     Calculate the Sortino ratio which only considers downside volatility.
     """
-    rates = pd.read_csv(risk_free_file)
-    rates.set_index("date", inplace=True)
-    rates.index = pd.to_datetime(rates.index)
-
     values = df.groupby(level=0)["value"].apply(lambda x: x.sum())
     values.index = pd.to_datetime(values.index, unit="ms")
     values = values.to_frame(name="value")
@@ -146,7 +143,7 @@ def risk_profile(context: Context) -> float:
     risk_factor = (age_profile(context.age) + salary_budget_ratio) / 2
 
     # FIXME: Think about employment_status harder.
-    if context.employment_status:
+    if context.employed:
         risk_factor *= 1.2
 
     return risk_factor
@@ -158,9 +155,16 @@ def get_points(
     stocks: List[Tuple[str, int]],
     context: Context,
     unique_industries: Set[str],
+    basedir: str,
 ) -> float:
-    rar = sharpe(df, context)
-    s_ratio = sortino(df, context)
+
+    # Load and prepare the rates DataFrame
+    rates = pd.read_csv(f"{basedir}/bond-rate.csv")
+    rates.set_index("date", inplace=True)
+    rates.index = pd.to_datetime(rates.index)
+
+    rar = sharpe(df, context, rates)
+    s_ratio = sortino(df, context, rates)
     if np.isnan(s_ratio):
         risk_adjusted = rar
     else:
@@ -182,6 +186,7 @@ def evaluate(
     sic_industry: Dict[str, List[str]],
     unique_industries: Set[str],
     ref_client: ReferenceClient,
+    basedir: str,
 ) -> Tuple[bool, str, float, float]:
     # Check did not send multiple stocks
     if len(stocks) != len(set([s for s, _ in stocks])):
@@ -221,7 +226,7 @@ def evaluate(
         - df.groupby(level=1).first()["value"].sum()
     )
 
-    points = get_points(df, profit, stocks, context, unique_industries)
+    points = get_points(df, profit, stocks, context, unique_industries, basedir)
 
     # Dock fixed amount of points, if illegal
     if len(legal_stocks) != len(stocks):
@@ -231,45 +236,65 @@ def evaluate(
     return True, "", profit, points
 
 
-def main(api_key: str, data: Dict[str, Union[List[Tuple[str, int]] | Any]]):
+def main(api_key: str, data: Dict[str, Union[List[Dict[str, int]] | Any]]):
     stocks_client = StocksClient(api_key)
     ref_client = ReferenceClient(api_key)
     if "context" not in data:
         print("context not passed through")
         return
 
-    with open("sic_industry.json", "r") as f:
+    with open(f"{args.basedir}/sic_industry.json", "r") as f:
         sic_industry = json.loads(f.read())
-    with open("unique_industries.json", "r") as f:
+    with open(f"{args.basedir}/unique_industries.json", "r") as f:
         unique_industries = json.loads(f.read())
 
     context = Context(**data["context"])
 
+    stocks = []
+    for stock in data["stocks"]:
+        stocks.append([stock["ticker"], stock["quantity"]])
+
     df = get_tickers_agg_bars(
         stocks_client,
-        data["stocks"],
-        start_date=context.start_date,
-        end_date=context.end_date,
+        stocks,
+        # BAD
+        start=context.start.split("T")[0],
+        end=context.end.split("T")[0],
     )
     if df is None:
         print(
-            False, 0.0, -1.0, f"| Error: invalid ticker(s) passed in {data['stocks']}"
+            json.dumps(
+                {
+                    "passed": False,
+                    "profit": 0.0,
+                    "points": -1.0,
+                    "error": f"invalid ticker(s) passed in {data['stocks']}",
+                }
+            )
         )
         return
 
     passed, error_message, profit, points = evaluate(
-        df, data["stocks"], context, sic_industry, unique_industries, ref_client
+        df, stocks, context, sic_industry, unique_industries, ref_client, args.basedir
     )
-    print(passed, profit, points, end="")
-    if error_message:
-        print(" |", error_message)
-    else:
-        print("")
+    print(
+        json.dumps(
+            {
+                "passed": passed,
+                "profit": profit,
+                "points": points,
+                "error": error_message,
+            }
+        )
+    )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--apikey", help="The polygon api key", required=True)
+    parser.add_argument(
+        "--basedir", help="Directory base to look for files.", default="./"
+    )
     args = parser.parse_args()
 
     data = json.loads(sys.stdin.read())
