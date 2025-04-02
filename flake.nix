@@ -37,8 +37,12 @@
                     tree
                     cbonsai
 
+                    pyright
                     (python3.withPackages(p : with p; [
                       requests
+                      python-lsp-server
+                      numpy
+                      tabulate
                     ]))
                   ];
                 shellHook = ''
