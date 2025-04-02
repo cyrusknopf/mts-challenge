@@ -50,6 +50,7 @@ func main() {
 	// HTTP Handler for client answers.
 	http.HandleFunc("/submit", handlers.PostHandler)
 	http.HandleFunc("/request", handlers.GetHandler)
+	http.HandleFunc("/info", handlers.InfoHandler)
 	log.Printf("Starting server on port %d", *port)
 	net := fmt.Sprintf("%s:%d", *addr, *port)
 	if err := http.ListenAndServe(net, nil); err != nil {

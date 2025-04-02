@@ -30,7 +30,8 @@ VALUES
     ('Apex Quants', 'g', 720, 45.60, NOW() - INTERVAL '3 hours'),
     ('Matrix Strategy', 'h', 680, 18.25, NOW() - INTERVAL '5 hours'),
     ('Velocity Capital', 'i',650, -24.50, NOW() - INTERVAL '2 days'),
-    ('Sigma Investments', 'j', 590, 5.12, NOW() - INTERVAL '4 hours');
+    ('Sigma Investments', 'j', 590, 5.12, NOW() - INTERVAL '4 hours'),
+    ('John Street', 'k', 590, 5.12, NOW() - INTERVAL '9 hours');
 
 -- FIXME: get it compatible with this
 -- ON CONFLICT (team_name) DO UPDATE
