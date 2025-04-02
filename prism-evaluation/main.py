@@ -143,7 +143,7 @@ def risk_profile(context: Context) -> float:
     risk_factor = (age_profile(context.age) + salary_budget_ratio) / 2
 
     # FIXME: Think about employment_status harder.
-    if context.employed:
+    if not context.employed:
         risk_factor *= 1.2
 
     return risk_factor
@@ -175,7 +175,7 @@ def get_points(
     # Enhance diversity: consider both number of stocks and industry diversity.
     enhanced_diversity = np.log(1 + len(stocks)) + np.log(1 + len(unique_industries))
 
-    points = abs(profit) * risk_adjusted / risk_factor * enhanced_diversity
+    points = np.log(abs(profit)) * (risk_adjusted / risk_factor) * enhanced_diversity
     return points if profit > 0 else -abs(points)
 
 
@@ -230,8 +230,8 @@ def evaluate(
 
     # Dock fixed amount of points, if illegal
     if len(legal_stocks) != len(stocks):
-        profit *= 0.85
-        points *= 0.85
+        profit = 0.85 * profit if profit > 0 else profit * 1.15
+        points = 0.85 * points if points > 0 else points * 1.15
 
     return True, "", profit, points
 
