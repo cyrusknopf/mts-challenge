@@ -40,6 +40,16 @@
                     pyright
                     (python3.withPackages(p : with p; [
                       requests
+
+                      python-lsp-server
+                      python-lsp-jsonrpc
+                      python-lsp-black
+                      python-lsp-ruff
+                      pyls-isort
+                      pyls-flake8
+                      flake8
+                      isort
+                      black
                       python-lsp-server
                     ]))
                   ];
