@@ -52,22 +52,7 @@ services:
     tty: true # Allocates a TTY (like -t)
     restart: unless-stopped
 
-  prism-llm:
-    build:
-      context: ./prism-llm
-    platform: linux/amd64
-    container_name: prism-llm
-    runtime: nvidia # Requires NVIDIA Container Toolkit on the host for GPU access
-    environment:
-      NVIDIA_VISIBLE_DEVICES: all
-    volumes:
-      - ./prism-server:/workspace/src
-    ports:
-      - "8000:8000"
-    networks:
-      - prismnetwork
-    stdin_open: true # Keeps STDIN open (like -i)
-    tty: true # Allocates a TTY (like -t)
+
 
 volumes:
   pgdata:
