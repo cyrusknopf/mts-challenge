@@ -168,6 +168,8 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 
 	// FIXME: the response needs changing, after been put through LLM
 
+	// resp, err := http.Post("http://localhost")
+
 	// resp := Response{
 	// 	Message: "Request accepted, payload: " + string(content),
 	// }
