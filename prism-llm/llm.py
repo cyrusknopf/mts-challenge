@@ -1,99 +1,58 @@
-device = "cuda"  # or your preferred device
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
-# Updated prompt with runtime placeholders and additional narrative instructions.
+flan_instr = "pszemraj/flan-t5-large-instruct-dolly_hhrlhf"
 
+MODEL : str = flan_instr
 
-start_date = "01-01-2023"
-end_date = "31-11-2024"
-age = 30
-employment_status = True
-budget = 10000
-salary = 257774
-sector_dislikes = ["Crypto Assets", "Energy and Transportation", "Finance or Crypto Assets"]
+prompt = f"""
+You will be given some information about a person. Your sole task is to write a short passage including details about the human. Respond with all included dates
 
-prompt = f"""### Instructions:
-You are a creative text generator tasked with producing a detailed and natural conversational profile synopsis. Given the following information, craft a rich narrative that integrates every provided detail in a natural and seamless way. Invent a unique name for the person and interweave extra background details—such as hobbies, friends, recent experiences, and personal anecdotes—to create a nuanced character profile. 
-
-Important: Do not mention or hint that this profile is used for generating a US stock portfolio, even though the narrative includes investment details.
-
-### Input:
-Name: [Auto-Generated]
-Investment Start Date (Buy): {start_date}
-Investment End Date (Sell): {end_date}
+Input: ```
+Name: {name}
 Age: {age}
-Employment Status: {employment_status}
-Budget to Invest: ${budget}
-Salary: ${salary}
-US Stock Sector Dislikes: {','.join(sector_dislikes)}
+their investment start date : {start_date}
+their investment end date : {end_date}
+they avoid : {dislikes.join(", ")}
+hobbies: painting
+employed: {employed}
+budget: ${budget} total
+Salary: ${salary} per year```
 
-### Synopsis:
+Output:
 """
 
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import time
 
-# Default model; for faster inference consider using Llama2-7B-Chat or MPT-7B-Instruct.
-# model_name = "Qwen/Qwen2.5-3B-Instruct"
-# model_name = "mistralai/Mixtral-8x7B-Instruct-v0.1"
-# model_name = "google/gemma-3-1b-it"
-model_name = "HuggingFaceTB/SmolLM2-1.7B-Instruct"
+def init_model(model, device : str = "cuda"):
+    tokenizer = AutoTokenizer.from_pretrained(model)
+
+    model = AutoModelForSeq2SeqLM.from_pretrained(model).to(device)
+
+    return tokenizer, model
 
 
-start = time.time()
-model = AutoModelForCausalLM.from_pretrained(
-    model_name,
-    torch_dtype="auto",
-    device_map="auto"
-)
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-print(f"Init: {time.time() - start}")
-start = time.time()
+def get_response(model, tokenizer device : str = "cuda") -> str:
+    inputs = tokenizer.encode(prompt, return_tensors="pt").to(device)
 
-messages = [
-    {"role": "system", "content": "You are an expert at generating stories. You are a helpful assistant, aiming at producing exactly what the user gives you."},
-    {"role": "user", "content": prompt}
-]
+    outputs = model.generate(
+        inputs,
+        #min_length=200,
+        min_new_tokens=50,
+        max_new_tokens=400,
+        do_sample=True,
+        top_k=80,
+        top_p=0.9,
+        temperature=0.3,
+        eos_token_id=tokenizer.eos_token_id,
+    )
 
-# The placeholders in the prompt (e.g., {start_date}) are expected to be filled in at runtime.
-text = tokenizer.apply_chat_template(
-    messages,
-    tokenize=False,
-    add_generation_prompt=True
-)
-model_inputs = tokenizer([text], return_tensors="pt").to(model.device)
+    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-print(f"Pre-gen: {time.time() - start}")
-start = time.time()
-generated_ids = model.generate(
-    **model_inputs,
-    max_new_tokens=512
-)
-# Remove the prompt tokens from the generated output
-generated_ids = [
-    output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-]
-print(f"Post-gen: {time.time() - start}")
-start = time.time()
+    return response
 
-response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-print(f"Post-decode: {time.time() - start}")
-start = time.time()
-
-print(response)
-
-print(f"Pre-gen: {time.time() - start}")
-start = time.time()
-generated_ids = model.generate(
-    **model_inputs,
-    max_new_tokens=512
-)
-# Remove the prompt tokens from the generated output
-generated_ids = [
-    output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-]
-print(f"Post-gen: {time.time() - start}")
-start = time.time()
-
-response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-print(f"Post-decode: {time.time() - start}")
-start = time.time()
+    # flan = "google/flan-t5-large"
+    # teapot = "teapotai/teapotllm"
+    # smoll_360_instr = "HuggingFaceTB/SmolLM-360M-Instruct"
+    # smoll_135_instr = "HuggingFaceTB/SmolLM-135M-Instruct"
+    # pico = "crumb/pico-gpt-j-6.7m"
+    # roberta = "FacebookAI/xlm-roberta-base"
+    # lamini = "MBZUAI/LaMini-GPT-774M"

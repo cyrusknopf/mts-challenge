@@ -1,6 +1,8 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 
+from llm import init_model, MODEL
+
 class PRISMServer(BaseHTTPRequestHandler):
     def do_GET(self):
         """Handle GET requests"""
@@ -70,12 +72,14 @@ class PRISMServer(BaseHTTPRequestHandler):
 
 
 
-
-
 def run_server(port=8001):
+    tokenizer, model = init_model(MODEL)
+
     server_address = ("", port)
+
     httpd = HTTPServer(server_address, PRISMServer)
     print(f"Server running on port {port}")
+
     httpd.serve_forever()
 
 if __name__ == "__main__":
