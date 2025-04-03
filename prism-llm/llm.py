@@ -29,15 +29,17 @@ US Stock Sector Dislikes: {','.join(sector_dislikes)}
 ### Synopsis:
 """
 
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 import time
 
 # Default model; for faster inference consider using Llama2-7B-Chat or MPT-7B-Instruct.
 # model_name = "Qwen/Qwen2.5-3B-Instruct"
 # model_name = "mistralai/Mixtral-8x7B-Instruct-v0.1"
 # model_name = "google/gemma-3-1b-it"
-model_name = "HuggingFaceTB/SmolLM2-1.7B-Instruct"
-
+# model_name = "HuggingFaceTB/SmolLM2-1.7B-Instruct"
+pipe = pipeline("text2text-generation", model="google/flan-t5-large")    
+print(pipe(prompt))
+exit(0)
 
 start = time.time()
 model = AutoModelForCausalLM.from_pretrained(
