@@ -14,8 +14,7 @@ export default function AboutPage() {
         {/* Header with Logo */}
         <header className="py-4">
           <div className="flex justify-center">
-            <Logo variant="full" />
-          </div>
+            <Logo variant="full" /> </div>
         </header>
 
 
@@ -100,6 +99,7 @@ export default function AboutPage() {
               <ul className="list-none ml-4 space-y-1 mb-4">
                 <li><strong>GET /request:</strong> Obtain investor context details.</li>
                 <li><strong>POST /submit:</strong> Submit your portfolio solution.</li>
+                <li><strong>GET /info:</strong> Get your team's current points and profits.</li>
               </ul>
 
               <h4 className="text-lg font-semibold mb-2">Portfolio Submission Format</h4>
