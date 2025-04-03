@@ -1,5 +1,6 @@
 FROM oven/bun:latest
 COPY . ./
+RUN bun add react-icons 
 RUN bun add -d @swc/cli @swc/core
 RUN bun install --frozen-lockfile
 RUN bun run build
