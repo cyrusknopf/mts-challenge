@@ -24,3 +24,9 @@ go.work.sum
 
 # env file
 .env
+
+# Python auto-generated files
+venv
+__pycache__/
+*.py[cod]
+*$py.class

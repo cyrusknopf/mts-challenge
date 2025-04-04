@@ -1,20 +1,22 @@
 import argparse
-import dataclasses
 import json
 import sys
 import warnings
 from dataclasses import dataclass
-from datetime import datetime
-from pprint import pprint
-from time import sleep, time
 from typing import Any, Dict, List, Set, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from numpy.polynomial.legendre import legadd
 from polygon import ReferenceClient, StocksClient
 
 warnings.filterwarnings("ignore")
+
+# Scaling constants for calculating points
+# see docs/scoring.md for more info
+ROI_SCALE = 1.0
+DIVERSITY_SCALE = 1.0
+CLI_SAT_SCALE = 1.0
+RAR_SCALE = 1.0
 
 
 @dataclass
@@ -29,6 +31,19 @@ class Context:
     salary: float
     budget: float
     dislikes: set
+
+
+def mse_from_ideal(weights_map: list[int]):
+    weights = np.array(weights_map, dtype=float)
+    n = weights.size
+
+    if n == 0:
+        return 0.0
+
+    ideal = weights.sum() / n
+    mse = np.mean((weights - ideal) ** 2)
+
+    return mse
 
 
 def get_tickers_agg_bars(
@@ -71,7 +86,6 @@ def is_industry_in_dislikes(
 
 def sharpe(
     df: pd.DataFrame,
-    context: Context,
     rates: pd.DataFrame,
     days: int = 252,
 ):
@@ -86,6 +100,9 @@ def sharpe(
     # Ensure both indexes are sorted
     values = values.sort_index()
     rates = rates.sort_index()
+
+    # values.std is 8<
+
     nearest_idx = rates.index.get_indexer(values.index, method="nearest")
 
     values["returns"] = (values["value"] / values["value"].shift(1)) - 1
@@ -132,6 +149,9 @@ def sortino(
 
 
 def risk_profile(context: Context) -> float:
+    """Risk profile returns a float from [0, 1.2] where a higher score indicates
+    more a more risk_averse client"""
+
     def age_profile(age):
         x0 = 45  # inflection age
         k = 0.1  # steepness factor
@@ -156,27 +176,124 @@ def get_points(
     context: Context,
     unique_industries: Set[str],
     basedir: str,
+    sic_industry: dict[str, list[str]],
+    ticker_details: dict,
+) -> float:
+    n_allowed_industries = len(unique_industries) - len(context.dislikes)
+
+    roi = return_on_investment(profit, context)
+    diversity = diversity_score(
+        stocks,
+        unique_industries,
+        n_allowed_industries,
+        sic_industry,
+        ticker_details,
+    )
+    client_sat = client_satisfaction(df, risk_profile(context))
+    rar = risk_adjusted_returns(df, context, basedir)
+
+    points = (
+        ROI_SCALE * roi
+        + DIVERSITY_SCALE * diversity
+        + CLI_SAT_SCALE * client_sat
+        + RAR_SCALE * rar
+    )
+
+    return points if profit > 0 else -abs(points)
+
+
+def return_on_investment(profit: float, context: Context) -> float:
+    """Return on investment is defined as the ratio of profit to initial budget"""
+    return profit / context.budget
+
+
+def diversity_score(
+    stocks: List[Tuple[str, int]],
+    unique_industries: set[str],
+    n_allowed_industries: int,
+    sic_industry: dict[str, list[str]],
+    ticker_details: dict,
 ) -> float:
 
-    # Load and prepare the rates DataFrame
+    stock_counts = [q for _, q in stocks]
+    stock_quantity = sum(stock_counts)
+    stocks_per_industry = stock_count_per_industry(ticker_details, stocks, sic_industry)
+
+    stock_mse = mse_from_ideal(stock_counts)
+    sic_mse = mse_from_ideal(list(stocks_per_industry.values()))
+
+    stock_div = np.log(1 + len(stocks)) / (1 + stock_quantity * stock_mse)
+    sic_div = (n_allowed_industries / len(unique_industries)) / (1 + sic_mse)
+
+    return stock_div + sic_div
+
+
+def stock_count_per_industry(
+    ticker_details: dict,
+    stocks: list[tuple[str, int]],
+    sic_industry: dict[str, list[str]],
+) -> dict[str, int]:
+    """Returns how many stocks were invested per industry"""
+    industry_count_map: dict[str, int] = {}
+
+    # XXX: sic_industries map a code to a list of industries in a (theoretically)
+    # many-many fashion. Visual inspection suggests that
+    # len(sic_industries[TCKR]) is always one. This makes calculating
+    # diversification harder. To workaround this, always assign stocks to the
+    # **first industry** in the list.
+
+    for tkr, quantity in stocks:
+        sic_code = ticker_details[tkr]["results"]["sic_code"]
+        industries = sic_industry[sic_code]
+
+        if not industries:
+            industry = "unmapped"
+        else:
+            industry = industries[0]
+
+        if industry not in industry_count_map:
+            industry_count_map[industry] = 0
+
+        industry_count_map[industry] += quantity
+
+    return industry_count_map
+
+
+def client_satisfaction(df: pd.DataFrame, risk_profile: float) -> float:
+    """Client satisfaction is a score between 0 and 1"""
+
+    portfolio_risk = df["value"].std()  # using definition of portfolio volatility
+
+    k = 2 - (risk_profile / 1.2)
+    client_risk = df["value"].mean() * np.abs(1 - k)
+
+    # "full marks" for not exceeding risk tolerance; otherwise score falls by
+    # percentage overreached.
+    if client_risk >= portfolio_risk:
+        return 1
+
+    # XXX: Do we want to allow -ve client satisfaction scores?
+    return max(0, 1 - ((portfolio_risk - client_risk) / client_risk))
+
+
+def risk_adjusted_returns(
+    df: pd.DataFrame,
+    context: Context,
+    basedir: str,
+) -> float:
+    """Calculate the risk-adjusted returns using Sharpe and Sortino ratios"""
     rates = pd.read_csv(f"{basedir}/bond-rate.csv")
     rates.set_index("date", inplace=True)
     rates.index = pd.to_datetime(rates.index)
 
-    rar = sharpe(df, context, rates)
+    rar = sharpe(df, rates)
     s_ratio = sortino(df, context, rates)
     if np.isnan(s_ratio):
         risk_adjusted = rar
     else:
         risk_adjusted = (rar + s_ratio) / 2
 
-    risk_factor = risk_profile(context)
-
-    # Enhance diversity: consider both number of stocks and industry diversity.
-    enhanced_diversity = np.log(1 + len(stocks)) + np.log(1 + len(unique_industries))
-
-    points = np.log(abs(profit)) * (risk_adjusted / risk_factor) * enhanced_diversity
-    return points if profit > 0 else -abs(points)
+    return risk_adjusted
 
 
 def evaluate(
@@ -226,7 +343,16 @@ def evaluate(
         - df.groupby(level=1).first()["value"].sum()
     )
 
-    points = get_points(df, profit, stocks, context, unique_industries, basedir)
+    points = get_points(
+        df,
+        profit,
+        stocks,
+        context,
+        unique_industries,
+        basedir,
+        sic_industry,
+        ticker_details,
+    )
 
     # Dock fixed amount of points, if illegal
     if len(legal_stocks) != len(stocks):
@@ -236,7 +362,7 @@ def evaluate(
     return True, "", profit, points
 
 
-def main(api_key: str, data: Dict[str, Union[List[Dict[str, int]] | Any]]):
+def main(api_key: str, data: Dict[str, Union[List[Dict[str, int]], Any]]):
     stocks_client = StocksClient(api_key)
     ref_client = ReferenceClient(api_key)
     if "context" not in data:
@@ -257,7 +383,8 @@ def main(api_key: str, data: Dict[str, Union[List[Dict[str, int]] | Any]]):
     df = get_tickers_agg_bars(
         stocks_client,
         stocks,
-        # BAD
+        # TODO: replace string slicing with proper parsing
+        #   https://stackoverflow.com/questions/1941927/convert-an-rfc-3339-time-to-a-standard-python-timestamp
         start=context.start.split("T")[0],
         end=context.end.split("T")[0],
     )
