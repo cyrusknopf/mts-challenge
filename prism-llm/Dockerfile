@@ -9,12 +9,18 @@ COPY . /app
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port the server will run on
+# Expose the ports the server will run on
 EXPOSE 8001
+EXPOSE 8002
+EXPOSE 8003
+EXPOSE 8004
 
-# Set the default command to run the server
-CMD ["python", "server.py" "-p" "8001"]
-CMD ["python", "server.py" "-p" "8002"]
-CMD ["python", "server.py" "-p" "8003"]
-CMD ["python", "server.py" "-p" "8004"]
+# Copy the entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+
+# Make the entrypoint script executable
+RUN chmod +x /app/entrypoint.sh
+
+# Set the entrypoint to the script
+ENTRYPOINT ["/app/entrypoint.sh"]
 
