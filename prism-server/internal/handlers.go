@@ -1,8 +1,10 @@
 package internal
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"maps"
 	"math"
 	"math/rand/v2"
@@ -13,8 +15,15 @@ import (
 	"time"
 )
 
+var port int = 1
+
 type Response struct {
 	Message string `json:"message"`
+}
+
+type LLMResponse struct {
+	Status int    `json:"status"`
+	Body   string `json:"body"`
 }
 
 type WeightedStock struct {
@@ -24,15 +33,68 @@ type WeightedStock struct {
 
 type HandlersConfig struct {
 	db               *Database
-	userContext      map[string]*RequestContext // XXX: Using large string as hash might be bad
+	userContext      map[string]*RequestContext
 	userContextMutex sync.RWMutex
+	pyServerMutex    sync.RWMutex
 	timeToLive       time.Duration
 	evalDir          string
 	apiKey           string
 }
 
 func NewHandlers(db *Database, uc map[string]*RequestContext, timeToLive time.Duration, evalDir string, apiKey string) HandlersConfig {
-	return HandlersConfig{db, uc, sync.RWMutex{}, timeToLive, evalDir, apiKey}
+	return HandlersConfig{db, uc, sync.RWMutex{}, sync.RWMutex{}, timeToLive, evalDir, apiKey}
+}
+
+type User struct {
+	ID                 int       `json:"-"`
+	APIKey             string    `json:"-"`
+	TeamName           string    `json:"teamname"`
+	Points             float64   `json:"points"`
+	Profit             float64   `json:"profit"`
+	LastSubmissionTime time.Time `json:"last_submission_time"`
+}
+
+func (h *HandlersConfig) InfoHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed, only GET allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	apiKey := r.Header.Get("X-API-Code")
+	validKey, err := ValidateAPIKey(apiKey, h.db)
+	if err != nil {
+		http.Error(w, "Database error - could not query DB: "+err.Error()+"\n\nIf you see this error, please contact an event administrator.", http.StatusInternalServerError)
+		return
+	}
+
+	if !validKey {
+		fmt.Printf("Error: %v\n", err)
+		http.Error(w, "Unauthorized - invalid or missing X-API-Code header. You should have received on X-API-Code per team.", http.StatusUnauthorized)
+		return
+	}
+
+	row, err := h.db.QueryRow("select * from teams where api_key = $1", apiKey)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		http.Error(w, "Database error - could not query DB: "+err.Error()+"\n\nIf you see this error, please contact an event administrator.", http.StatusInternalServerError)
+		return
+	}
+
+	var user User
+	err = row.Scan(&user.ID, &user.APIKey, &user.TeamName, &user.Points, &user.Profit, &user.LastSubmissionTime)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		http.Error(w, "Unable to parse user information, contact administrator if this issue persists", http.StatusInternalServerError)
+		return
+	}
+
+	out, err := json.Marshal(user)
+	if err != nil {
+		http.Error(w, "Unable to marshal user information, contact administrator if this issue persists.", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(out)
 }
 
 type User struct {
@@ -166,17 +228,57 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// FIXME: the response needs changing, after been put through LLM
+	/*
+	   Implements a round robin scheduler for requesting from the four Python LLM servers.
+	   Requests from the following ports, in order:
+	       - 8001
+	       - 8002
+	       - 8003
+	       - 8004
+	    Locks around the port update since it is shared amongst goroutines that all serve the go HTTP server (i think)
+	*/
+	h.pyServerMutex.Lock()
+	// Base URL
+	base_url := "http://prism-llm:800%d/generate"
+	// Format with the port final number
+	url := fmt.Sprintf(base_url, port)
+	// Print serverside for debug
+	fmt.Printf("Requesting from %s\n", url)
+	// Cycle through values 1,2,3,4
+	port = port%4 + 1
+	// Unlock
+	h.pyServerMutex.Unlock()
+	// Make the request
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(content))
 
-	// resp, err := http.Post("http://localhost")
+	if err != nil {
+		http.Error(w, "Failed to POST to PyServer"+err.Error()+"\n\nIf you see this please contact Cyrus or Sai", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
 
-	// resp := Response{
-	// 	Message: "Request accepted, payload: " + string(content),
-	// }
+	// Read the response body
+	llm_resp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading LLM response body:", err)
+		return
+	}
+
+	// Unmarshal the response into the LLMResponse struct
+	var llmResp LLMResponse
+	err = json.Unmarshal(llm_resp, &llmResp)
+	if err != nil {
+		fmt.Println("Error unmarshalling LLM response:", err)
+		return
+	}
+
+	// Set the message to be just the "body" of the response
+	resp_to_user := Response{
+		Message: llmResp.Body,
+	}
 	// Write JSON response to response writer
 	w.Header().Set("Content-Type", "application/json")
-	// json.NewEncoder(w).Encode(resp)
-	w.Write(content)
+	json.NewEncoder(w).Encode(resp_to_user)
 }
 
 type EvaluationData struct {

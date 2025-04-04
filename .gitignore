@@ -8,7 +8,7 @@
 *.so
 *.dylib
 */cmd
-
+prism-llm/__pycache__/
 # Test binary, built with `go test -c`
 *.test
 

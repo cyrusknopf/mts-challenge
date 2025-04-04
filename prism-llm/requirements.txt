@@ -3,3 +3,4 @@ accelerate
 torch
 numpy
 pandas
+faker

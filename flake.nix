@@ -43,6 +43,18 @@
                       python-lsp-server
                       numpy
                       tabulate
+                      numpy
+                      aiohttp
+                      tabulate
+                      python-lsp-server
+                      python-lsp-jsonrpc
+                      python-lsp-black
+                      python-lsp-ruff
+                      pyls-isort
+                      pyls-flake8
+                      flake8
+                      isort
+                      black
                     ]))
                   ];
                 shellHook = ''

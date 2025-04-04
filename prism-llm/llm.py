@@ -1,35 +1,108 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from typing import Any, Dict
 
-# checkpoint = "HuggingFaceTB/SmolLM2-1.7B-Instruct"
-checkpoint = "HuggingFaceTB/SmolLM2-360M-Instruct"
-device = "cuda"  # cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone
+from faker import Faker
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
-tokenizer = AutoTokenizer.from_pretrained(checkpoint)
-model = AutoModelForCausalLM.from_pretrained(checkpoint).to(device)
+flan_instr = "pszemraj/flan-t5-large-instruct-dolly_hhrlhf"
+davinci_instr = "zhihz0535/Auto-Instruct-Flan-T5-davinci003-zeroshot"
+smollm_135_v2 = "HuggingFaceTB/SmolLM2-135M-Instruct"
+smollm_135_v2_unsloth = "unsloth/SmolLM2-135M-Instruct"
+gpt_neo = "EleutherAI/gpt-neo-1.3B"
+data_to_text = "RUCAIBox/mvp-data-to-text"
 
-prompt = """### Instructions:
-You are a creative text generator tasked with producing a detailed profile synopsis. Given the following information, create an imaginative and comprehensive narrative that includes every provided detail (THIS IS IMPORTANT). The synopsis should serve as contextual input for a system that uses this information to ask you (the reader) to generate a stock portfolio. Therefore, it must clearly capture the key facts while also incorporating additional, sometimes tangential or seemingly irrelevant background details that add depth and character. Avoid simply echoing the input.
+MODEL: str = flan_instr
+fake = Faker()
 
-### Input:
-Name: John Smith
-Age: 20
-Hates: tech and healthcare businesses
-Salary: $10000
-Risk Appetite: Low
 
-### Synopsis:
-"""
+def prompt(data):
+    has_dislikes = len(data["dislikes"]) != 0
+    employed = data["employed"]
 
-inputs = tokenizer.encode(prompt, return_tensors="pt").to(device)
+    base_str = f"""
+    You will be given some information about a person. Your sole task is to write a short passage including details about the human. Respond with all included dates
 
-outputs = model.generate(
-    inputs,
-    max_length=450,  # Adjust as needed for longer outputs
-    do_sample=True,
-    top_k=50,
-    top_p=0.95,
-    temperature=0.9,
-    eos_token_id=tokenizer.eos_token_id,
-)
+    Input: ```
+    Name: {fake.name()}
+    Age: {data["age"]}
+    their investment start date : {data["start"]}
+    their investment end date : {data["end"]}
+    hobbies: painting
+    """
 
-print(tokenizer.decode(outputs[0], skip_special_tokens=True))
+    dislikes_str = (
+        f"""
+    they avoid : {",".join(data["dislikes"])}
+    """
+        if has_dislikes
+        else ""
+    )
+
+    employment_str = (
+        f"""
+    employed: {data["employed"]}
+    Salary: ${data["salary"]} per year```
+    """
+        if employed
+        else ""
+    )
+
+    budget_str = f"""
+    budget: ${data["budget"]} total
+
+    Output:
+    """
+    prompt = base_str + dislikes_str + employment_str + budget_str
+    print(prompt)
+    return prompt
+
+
+def init_model(model, device: str = "cuda"):
+    tokenizer = AutoTokenizer.from_pretrained(model)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model).to(device)
+    # model = AutoModelForCausalLM.from_pretrained(model).to(device)
+    # tokenizer = MvpTokenizer.from_pretrained(model)
+    # model = MvpForConditionalGeneration.from_pretrained(model).to(device)
+
+    return tokenizer, model
+
+
+def get_response(model, tokenizer, data: Dict[str, Any], device: str = "cuda") -> str:
+    true_prompt = prompt(data)
+
+    inputs = tokenizer.encode(
+        true_prompt,
+        return_tensors="pt",
+    ).to(device)
+
+    outputs = model.generate(
+        inputs,
+        # min_length=200,
+        min_new_tokens=50,
+        max_new_tokens=400,
+        do_sample=True,
+        top_k=80,
+        top_p=0.9,
+        temperature=0.3,
+        eos_token_id=tokenizer.eos_token_id,
+    )
+    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return response
+
+    # Model graveyard
+    r"""
+       _    (^)
+      (_\   |_|
+       \_\  |_|
+       _\_\,/_|
+      (`\(_|`\|
+     (`\,)  \ \
+      \,)   | |      Sai Putravu + Cyrus Knopf
+        \__(__|
+    """
+    # flan = "google/flan-t5-large"
+    # teapot = "teapotai/teapotllm"
+    # smoll_360_instr = "HuggingFaceTB/SmolLM-360M-Instruct"
+    # smoll_135_instr = "HuggingFaceTB/SmolLM-135M-Instruct"
+    # pico = "crumb/pico-gpt-j-6.7m"
+    # roberta = "FacebookAI/xlm-roberta-base"
+    # lamini = "MBZUAI/LaMini-GPT-774M"
