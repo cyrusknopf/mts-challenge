@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 from faker import Faker
 
-# from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
 flan_instr = "pszemraj/flan-t5-large-instruct-dolly_hhrlhf"
 davinci_instr = "zhihz0535/Auto-Instruct-Flan-T5-davinci003-zeroshot"
