@@ -171,12 +171,27 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	/*
+	   Implements a round robin scheduler for requesting from the four Python LLM servers.
+	   Requests from the following ports, in order:
+	       - 8001
+	       - 8002
+	       - 8003
+	       - 8004
+	    Locks around the port update since it is shared amongst goroutines that all serve the go HTTP server (i think)
+	*/
 	h.pyServerMutex.Lock()
+	// Base URL
 	base_url := "http://prism-llm:800%d/generate"
+	// Format with the port final number
 	url := fmt.Sprintf(base_url, port)
+	// Print serverside for debug
 	fmt.Printf("Requesting from %s\n", url)
+	// Cycle through values 1,2,3,4
 	port = port%4 + 1
+	// Unlock
 	h.pyServerMutex.Unlock()
+	// Make the request
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(content))
 
 	if err != nil {
