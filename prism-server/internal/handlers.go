@@ -221,6 +221,7 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Map context to the individual user, identified by their API token.
 	h.userContextMutex.Lock()
+	// Set the time to now instead of pre-generation
 	randomContext.Timestamp = time.Now()
 	h.userContext[apiKey] = &randomContext
 	h.userContextMutex.Unlock()

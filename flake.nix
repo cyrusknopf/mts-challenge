@@ -53,6 +53,7 @@
                       pyls-isort
                       pyls-flake8
                       flake8
+                      faker
                       isort
                       black
                     ]))
