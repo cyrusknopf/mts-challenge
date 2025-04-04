@@ -170,7 +170,7 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	base_url := "http://prism-llm:%d/generate"
+	base_url := "http://prism-llm:800%d/generate"
 	url := fmt.Sprintf(base_url, port)
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(content))
 	port = port%5 + 1
