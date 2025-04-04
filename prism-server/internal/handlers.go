@@ -12,9 +12,10 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
-	"bytes"
 	"time"
 )
+
+var port int = 1
 
 type Response struct {
 	Message string `json:"message"`
@@ -169,7 +170,10 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := http.Post("http://prism-llm:8001/generate", "application/json", bytes.NewBuffer(content))
+	base_url := "http://prism-llm:%d/generate"
+	url := fmt.Sprintf(base_url, port)
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(content))
+	port = port%5 + 1
 
 	if err != nil {
 		http.Error(w, "Failed to POST to PyServer"+err.Error()+"\n\nIf you see this please contact Cyrus or Sai", http.StatusInternalServerError)
