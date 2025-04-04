@@ -3,6 +3,7 @@ package internal
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"maps"
 	"math"
 	"math/rand/v2"
@@ -35,11 +36,62 @@ func NewHandlers(db *Database, uc map[string]*RequestContext, timeToLive time.Du
 	return HandlersConfig{db, uc, sync.RWMutex{}, timeToLive, evalDir, apiKey}
 }
 
+type User struct {
+	ID                 int       `json:"-"`
+	APIKey             string    `json:"-"`
+	TeamName           string    `json:"teamname"`
+	Points             float64   `json:"points"`
+	Profit             float64   `json:"profit"`
+	LastSubmissionTime time.Time `json:"last_submission_time"`
+}
+
+func (h *HandlersConfig) InfoHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed, only GET allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	apiKey := r.Header.Get("X-API-Code")
+	validKey, err := ValidateAPIKey(apiKey, h.db)
+	if err != nil {
+		http.Error(w, "Database error - could not query DB: "+err.Error()+"\n\nIf you see this error, please contact an event administrator.", http.StatusInternalServerError)
+		return
+	}
+
+	if !validKey {
+		fmt.Printf("Error: %v\n", err)
+		http.Error(w, "Unauthorized - invalid or missing X-API-Code header. You should have received on X-API-Code per team.", http.StatusUnauthorized)
+		return
+	}
+
+	row, err := h.db.QueryRow("select * from teams where api_key = $1", apiKey)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		http.Error(w, "Database error - could not query DB: "+err.Error()+"\n\nIf you see this error, please contact an event administrator.", http.StatusInternalServerError)
+		return
+	}
+
+	var user User
+	err = row.Scan(&user.ID, &user.APIKey, &user.TeamName, &user.Points, &user.Profit, &user.LastSubmissionTime)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		http.Error(w, "Unable to parse user information, contact administrator if this issue persists", http.StatusInternalServerError)
+		return
+	}
+
+	out, err := json.Marshal(user)
+	if err != nil {
+		http.Error(w, "Unable to marshal user information, contact administrator if this issue persists.", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(out)
+}
+
 // Note, that hitting this endpoint over-writes previous RequestContext.
 // This means that a user should keep track of whether they are responding
 // to the right piece of context.
 // TODO: Think about whether we need to force users to only compete from one device, to avoid race conditions.
-// TODO: Handle context management
 func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed, only GET allowed", http.StatusMethodNotAllowed)
@@ -115,14 +167,27 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// FIXME: the response needs changing, after been put through LLM
+	resp, err := http.Post("http://prism-llm:8001", "application/json", bytes.NewBuffer(content))
 
-	// resp := Response{
-	// 	Message: "Request accepted, payload: " + string(content),
-	// }
+	if err != nil {
+		http.Error(w, "Failed to POST to PyServer"+err.Error()+"\n\nIf you see this please contact Cyrus or Sai", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	llm_resp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading LLM response body:", err)
+		return
+	}
+
+	resp_to_user := Response{
+		Message: string(llm_resp),
+	}
 	// Write JSON response to response writer
 	w.Header().Set("Content-Type", "application/json")
-	// json.NewEncoder(w).Encode(resp)
+	json.NewEncoder(w).Encode(resp_to_user)
 	w.Write(content)
 }
 
@@ -138,8 +203,6 @@ type EvaluationResponse struct {
 	Error  string  `json:"error"`
 }
 
-// @cyrus wym by this?
-// TODO: Handle context management
 func (h *HandlersConfig) PostHandler(w http.ResponseWriter, r *http.Request) {
 	// Only allow POST requests.
 	if r.Method != http.MethodPost {
@@ -200,7 +263,6 @@ Example expected format:
 		return
 	}
 
-	// FIXME: Evaluation left.
 	var out strings.Builder
 	subproc := exec.Command("/usr/bin/python",
 		fmt.Sprintf("%s/main.py", h.evalDir),
