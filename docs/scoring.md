@@ -61,9 +61,11 @@ from offsetting their losses in client satisfaction here.
 
 $$
 \text{diversification} = \frac{\text{industries invested intersect client likes}}{\text{client-approved
-industries}} % TODO: factor in number of stocks bought in a way that doesn't
-             % skew towards high-budget clients; not sure how to just yet
+industries}}
 $$
+
+> TODO: factor in number of stocks bought in a way that doesn't
+> skew towards high-budget clients; not sure how to just yet
 
 Client satisfaction is calculated as a function of the client's risk tolerance
 and the riskiness of the portfolio provided. Every percentage point that a
