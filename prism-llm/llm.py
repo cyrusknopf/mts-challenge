@@ -15,8 +15,8 @@ data_to_text = "RUCAIBox/mvp-data-to-text"
 MODEL: str = flan_instr
 fake = Faker()
 
- prompt = (
-     lambda data: f"""
+prompt = (
+    lambda data: f"""
  You will be given some information about a person. Your sole task is to write a short passage including details about the human. Respond with all included dates
 
  Input: ```
@@ -32,33 +32,34 @@ fake = Faker()
 
  Output:
  """
- )
+)
 
- #prompt = (
- #   lambda data: f"""
-#You are given the following information about an individual. Your task is to generate a natural language description that captures all the details provided below in a coherent and engaging narrative.
+# prompt = (
+#   lambda data: f"""
+# You are given the following information about an individual. Your task is to generate a natural language description that captures all the details provided below in a coherent and engaging narrative.
 
-#Input Details:
-#- Name: {fake.name()}
-#- Age: {data["age"]}
-#- Investment Start Date: {data["start"]}
-#- Investment End Date: {data["end"]}
-#- Dislikes: {', '.join(data["dislikes"])}
-#- Hobbies: Painting
-#- Employment Status: {data["employed"]}
-#- Total Budget: ${data["budget"]}
-#- Annual Salary: ${data["salary"]}
+# Input Details:
+# - Name: {fake.name()}
+# - Age: {data["age"]}
+# - Investment Start Date: {data["start"]}
+# - Investment End Date: {data["end"]}
+# - Dislikes: {', '.join(data["dislikes"])}
+# - Hobbies: Painting
+# - Employment Status: {data["employed"]}
+# - Total Budget: ${data["budget"]}
+# - Annual Salary: ${data["salary"]}
 #
-#Generate a brief yet comprehensive paragraph that summarizes these details.
-#"""
-#)
+# Generate a brief yet comprehensive paragraph that summarizes these details.
+# """
+# )
+
 
 def init_model(model, device: str = "cuda"):
     tokenizer = AutoTokenizer.from_pretrained(model)
     model = AutoModelForSeq2SeqLM.from_pretrained(model).to(device)
     # model = AutoModelForCausalLM.from_pretrained(model).to(device)
-    #tokenizer = MvpTokenizer.from_pretrained(model)
-    #model = MvpForConditionalGeneration.from_pretrained(model).to(device)
+    # tokenizer = MvpTokenizer.from_pretrained(model)
+    # model = MvpForConditionalGeneration.from_pretrained(model).to(device)
 
     return tokenizer, model
 
