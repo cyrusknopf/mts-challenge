@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"maps"
-	"math"
-	"math/rand/v2"
 	"net/http"
 	"os/exec"
 	"strings"
@@ -119,50 +116,7 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dislikesSet := make(map[string]struct{})
-	n := rand.IntN(len(UNIQUE_INDUSTRIES) - 6)
-	// We leave at least 6 industries free to invest.
-	//
-	// Also, this will not guarantee that you have n disliked sectors,
-	// just that at most it is n. This is because, on duplicate hit, we
-	// do not redo the iteration.
-	for range n {
-		s := UNIQUE_INDUSTRIES[rand.IntN(len(UNIQUE_INDUSTRIES))]
-		if _, ok := dislikesSet[s]; !ok {
-			// This is a new industry, we add it in.
-			dislikesSet[s] = struct{}{}
-		}
-	}
-	dislikes := make([]string, 0)
-	for k := range maps.Keys(dislikesSet) {
-		if len(k) > 0 {
-			dislikes = append(dislikes, k)
-		}
-	}
-
-	startDate, endDate := randomDateRange()
-
-	// More likely to be employed than unemployed.
-	employed := rand.IntN(4) != 0
-
-	salary := math.Round(math.Abs(rand.NormFloat64()*SALARY_STD + SALARY_MEAN))
-	budget := math.Round(math.Abs(rand.NormFloat64()*BUDGET_STD+BUDGET_MEAN) * salary)
-
-	if !employed {
-		// Force salary to 0, if unemployed. Still gives budget to invest.
-		salary = 0.0
-	}
-
-	randomContext := RequestContext{
-		Timestamp:        time.Now(),
-		StartDate:        startDate.Local().Format(time.RFC3339),
-		EndDate:          endDate.Local().Format(time.RFC3339),
-		Age:              rand.IntN(MAX_AGE-MIN_AGE) + MIN_AGE,
-		EmploymentStatus: employed,
-		Salary:           salary,
-		Budget:           budget,
-		Dislikes:         dislikes,
-	}
+	randomContext := GenerateRandomContext()
 
 	// Generate LLM based text. For now, it JSONs the values.
 	content, err := json.Marshal(randomContext)
