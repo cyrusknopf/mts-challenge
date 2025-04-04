@@ -103,8 +103,6 @@ def sharpe(
     values = values.sort_index()
     rates = rates.sort_index()
 
-    # values.std is 8<
-
     nearest_idx = rates.index.get_indexer(values.index, method="nearest")
 
     values["returns"] = (values["value"] / values["value"].shift(1)) - 1
