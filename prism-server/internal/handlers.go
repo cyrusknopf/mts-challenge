@@ -28,15 +28,16 @@ type WeightedStock struct {
 
 type HandlersConfig struct {
 	db               *Database
-	userContext      map[string]*RequestContext // XXX: Using large string as hash might be bad
+	userContext      map[string]*RequestContext
 	userContextMutex sync.RWMutex
+	pyServerMutex    sync.RWMutex
 	timeToLive       time.Duration
 	evalDir          string
 	apiKey           string
 }
 
 func NewHandlers(db *Database, uc map[string]*RequestContext, timeToLive time.Duration, evalDir string, apiKey string) HandlersConfig {
-	return HandlersConfig{db, uc, sync.RWMutex{}, timeToLive, evalDir, apiKey}
+	return HandlersConfig{db, uc, sync.RWMutex{}, sync.RWMutex{}, timeToLive, evalDir, apiKey}
 }
 
 type User struct {
@@ -170,10 +171,13 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.pyServerMutex.Lock()
 	base_url := "http://prism-llm:800%d/generate"
 	url := fmt.Sprintf(base_url, port)
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(content))
+	fmt.Printf("Requesting from %s\n", url)
 	port = port%5 + 1
+	h.pyServerMutex.Unlock()
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(content))
 
 	if err != nil {
 		http.Error(w, "Failed to POST to PyServer"+err.Error()+"\n\nIf you see this please contact Cyrus or Sai", http.StatusInternalServerError)
