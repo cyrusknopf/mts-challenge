@@ -164,11 +164,6 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 		Dislikes:         dislikes,
 	}
 
-	// Map context to the individual user, identified by their API token.
-	h.userContextMutex.Lock()
-	h.userContext[apiKey] = &randomContext
-	h.userContextMutex.Unlock()
-
 	// Generate LLM based text. For now, it JSONs the values.
 	content, err := json.Marshal(randomContext)
 	if err != nil {
@@ -224,6 +219,12 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 	resp_to_user := Response{
 		Message: llmResp.Body,
 	}
+	// Map context to the individual user, identified by their API token.
+	h.userContextMutex.Lock()
+	randomContext.Timestamp = time.Now()
+	h.userContext[apiKey] = &randomContext
+	h.userContextMutex.Unlock()
+
 	// Write JSON response to response writer
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp_to_user)
