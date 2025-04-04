@@ -56,7 +56,7 @@ def run_server(port):
     app.router.add_get("/{path:.*}", handle_get)
     app.router.add_post("/{path:.*}", handle_post)
 
-    web.run_app(app, host="localhost", port=port)
+    web.run_app(app, host="", port=port)
 
 
 if __name__ == "__main__":

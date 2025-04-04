@@ -63,7 +63,7 @@ services:
     volumes:
       - ./prism-server:/workspace/src
     ports:
-      - "8001:8001"
+      - "8001" # Only expose internal, not external
     networks:
       - prismnetwork
     stdin_open: true # Keeps STDIN open (like -i)
