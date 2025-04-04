@@ -1,7 +1,9 @@
+from random import choice
 from typing import Any, Dict
 
 from faker import Faker
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
+# from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
 flan_instr = "pszemraj/flan-t5-large-instruct-dolly_hhrlhf"
 davinci_instr = "zhihz0535/Auto-Instruct-Flan-T5-davinci003-zeroshot"
@@ -12,6 +14,21 @@ data_to_text = "RUCAIBox/mvp-data-to-text"
 
 MODEL: str = flan_instr
 fake = Faker()
+
+hobbies = [
+    "painting",
+    "hiking",
+    "photography",
+    "gardening",
+    "playing guitar",
+    "cooking",
+    "bird watching",
+    "rock climbing",
+    "knitting",
+    "reading science fiction",
+    "learning languages",
+    "woodworking",
+]
 
 
 def prompt(data):
@@ -26,7 +43,7 @@ def prompt(data):
     Age: {data["age"]}
     their investment start date : {data["start"]}
     their investment end date : {data["end"]}
-    hobbies: painting
+    hobbies: {choice(hobbies)}
     """
 
     dislikes_str = (
