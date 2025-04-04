@@ -1,12 +1,8 @@
 {
   "stocks": [
     {
-      "ticker": "NVDA",
-      "quantity": 10
-    },
-    {
-      "ticker": "META",
-      "quantity": 1
+      "ticker": "PYPL",
+      "quantity": 3
     }
   ],
   "context": {
@@ -17,6 +13,6 @@
     "age": 30,
     "employed": true,
     "salary": 100000,
-    "dislikes": ["Technology"]
+    "dislikes": []
   }
 }
