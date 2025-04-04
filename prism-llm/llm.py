@@ -13,24 +13,47 @@ data_to_text = "RUCAIBox/mvp-data-to-text"
 MODEL: str = flan_instr
 fake = Faker()
 
-prompt = (
-    lambda data: f"""
-You will be given some information about a person. Your sole task is to write a short passage including details about the human. Respond with all included dates
 
-Input: ```
-Name: {fake.name()}
-Age: {data["age"]}
-their investment start date : {data["start"]}
-their investment end date : {data["end"]}
-they avoid : {",".join(data["dislikes"])}
-hobbies: painting
-employed: {data["employed"]}
-budget: ${data["budget"]} total
-Salary: ${data["salary"]} per year```
+def prompt(data):
+    has_dislikes = len(data["dislikes"]) != 0
+    employed = data["employed"]
 
-Output:
-"""
-)
+    base_str = f"""
+    You will be given some information about a person. Your sole task is to write a short passage including details about the human. Respond with all included dates
+
+    Input: ```
+    Name: {fake.name()}
+    Age: {data["age"]}
+    their investment start date : {data["start"]}
+    their investment end date : {data["end"]}
+    hobbies: painting
+    """
+
+    dislikes_str = (
+        f"""
+    they avoid : {",".join(data["dislikes"])}
+    """
+        if has_dislikes
+        else ""
+    )
+
+    employment_str = (
+        f"""
+    employed: {data["employed"]}
+    Salary: ${data["salary"]} per year```
+    """
+        if employed
+        else ""
+    )
+
+    budget_str = f"""
+    budget: ${data["budget"]} total
+
+    Output:
+    """
+    prompt = base_str + dislikes_str + employment_str + budget_str
+    print(prompt)
+    return prompt
 
 
 def init_model(model, device: str = "cuda"):
