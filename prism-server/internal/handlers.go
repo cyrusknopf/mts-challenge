@@ -97,58 +97,6 @@ func (h *HandlersConfig) InfoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(out)
 }
 
-type User struct {
-	ID                 int       `json:"-"`
-	APIKey             string    `json:"-"`
-	TeamName           string    `json:"teamname"`
-	Points             float64   `json:"points"`
-	Profit             float64   `json:"profit"`
-	LastSubmissionTime time.Time `json:"last_submission_time"`
-}
-
-func (h *HandlersConfig) InfoHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed, only GET allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	apiKey := r.Header.Get("X-API-Code")
-	validKey, err := ValidateAPIKey(apiKey, h.db)
-	if err != nil {
-		http.Error(w, "Database error - could not query DB: "+err.Error()+"\n\nIf you see this error, please contact an event administrator.", http.StatusInternalServerError)
-		return
-	}
-
-	if !validKey {
-		fmt.Printf("Error: %v\n", err)
-		http.Error(w, "Unauthorized - invalid or missing X-API-Code header. You should have received on X-API-Code per team.", http.StatusUnauthorized)
-		return
-	}
-
-	row, err := h.db.QueryRow("select * from teams where api_key = $1", apiKey)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		http.Error(w, "Database error - could not query DB: "+err.Error()+"\n\nIf you see this error, please contact an event administrator.", http.StatusInternalServerError)
-		return
-	}
-
-	var user User
-	err = row.Scan(&user.ID, &user.APIKey, &user.TeamName, &user.Points, &user.Profit, &user.LastSubmissionTime)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		http.Error(w, "Unable to parse user information, contact administrator if this issue persists", http.StatusInternalServerError)
-		return
-	}
-
-	out, err := json.Marshal(user)
-	if err != nil {
-		http.Error(w, "Unable to marshal user information, contact administrator if this issue persists.", http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(out)
-}
-
 // Note, that hitting this endpoint over-writes previous RequestContext.
 // This means that a user should keep track of whether they are responding
 // to the right piece of context.
