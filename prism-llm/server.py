@@ -1,3 +1,4 @@
+import argparse
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any, Callable
@@ -72,7 +73,7 @@ class PRISMHTTPServer(HTTPServer):
         self.RequestHandlerClass.tokenizer = tokenizer
 
 
-def run_server(port=8001):
+def run_server(port):
     tokenizer, model = init_model(MODEL)
 
     server_address = ("", port)
@@ -84,4 +85,13 @@ def run_server(port=8001):
 
 
 if __name__ == "__main__":
-    run_server()
+    parser = argparse.ArgumentParser("prism-llm-server")
+    parser.add_argument(
+        "-p",
+        "--port",
+        type=int,
+        required=True,
+        help="Specify the port that the server will run on.",
+    )
+    args = parser.parse_args()
+    run_server(args.port)

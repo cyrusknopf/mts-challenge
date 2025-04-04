@@ -13,5 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 8001
 
 # Set the default command to run the server
-CMD ["python", "server.py"]
+CMD ["python", "server.py" "-p" "8001"]
+CMD ["python", "server.py" "-p" "8002"]
+CMD ["python", "server.py" "-p" "8003"]
+CMD ["python", "server.py" "-p" "8004"]
 
