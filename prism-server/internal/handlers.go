@@ -175,7 +175,7 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 	base_url := "http://prism-llm:800%d/generate"
 	url := fmt.Sprintf(base_url, port)
 	fmt.Printf("Requesting from %s\n", url)
-	port = port%5 + 1
+	port = port%4 + 1
 	h.pyServerMutex.Unlock()
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(content))
 
