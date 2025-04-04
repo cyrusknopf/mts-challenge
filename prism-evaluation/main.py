@@ -235,10 +235,10 @@ def diversity_score(
     stock_mse = mse_from_ideal(stock_counts)
     sic_mse = mse_from_ideal(list(stocks_per_industry.values()))
 
-    stock_div = np.log(1 + len(stocks)) / (1 + stock_quantity * stock_mse)
-    sic_div = (n_allowed_industries / len(unique_industries)) / (1 + sic_mse)
+    stock_score = np.log(1 + len(stocks)) / (1 + stock_quantity * stock_mse)
+    sic_score = (n_allowed_industries / len(unique_industries)) / (1 + sic_mse)
 
-    return stock_div + sic_div
+    return stock_score + sic_score
 
 
 def stock_count_per_industry(
