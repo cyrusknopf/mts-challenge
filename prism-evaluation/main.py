@@ -14,9 +14,9 @@ warnings.filterwarnings("ignore")
 # Scaling constants for calculating points
 # see docs/scoring.md for more info
 ROI_SCALE = 1.0
-DIVERSITY_SCALE = 1.0
-CLI_SAT_SCALE = 1.0
-RAR_SCALE = 1.0
+DIVERSITY_SCALE = 1.3
+CLI_SAT_SCALE = 2.0
+RAR_SCALE = 1.2
 
 DEBUG = False
 
@@ -36,6 +36,10 @@ class Context:
 
 
 def mse_from_ideal(weights_map: list[int]):
+    if len(weights_map) == 1:
+        # One stock is NOT a portfolio, punish
+        weights_map.append(10000000)
+
     weights = np.array(weights_map, dtype=float)
     n = weights.size
 
@@ -184,6 +188,7 @@ def get_points(
 
     roi = return_on_investment(profit, context)
     diversity = diversity_score(
+        df,
         stocks,
         unique_industries,
         n_allowed_industries,
@@ -203,14 +208,12 @@ def get_points(
         + RAR_SCALE * rar
     )
 
-    points = points * 100  # make a nicer scale for points
+    points = points * 10  # make a nicer scale for points
 
     # Dock fixed amount of points, if illegal
     if len(legal_stocks) != len(stocks):
-        profit = 0.85 * profit if profit > 0 else profit * 1.15
-        points = 0.85 * points if points > 0 else points * 1.15
-
-    points = np.round(points)
+        profit = 0.5 * profit if profit > 0 else profit * 1.5
+        points = 0.5 * points if points > 0 else points * 1.5
 
     return points if profit > 0 else -abs(points)
 
@@ -221,6 +224,7 @@ def return_on_investment(profit: float, context: Context) -> float:
 
 
 def diversity_score(
+    df: pd.DataFrame,
     stocks: List[Tuple[str, int]],
     unique_industries: set[str],
     n_allowed_industries: int,
@@ -228,15 +232,15 @@ def diversity_score(
     ticker_details: dict,
 ) -> float:
 
-    stock_counts = [q for _, q in stocks]
-    stock_quantity = sum(stock_counts)
+    stock_quantity_prods = df.groupby(level=1).first()["value"]
+    unique_stocks = set([s for s, _ in stocks])
+    stock_counts = [stock_quantity_prods[s] for s in unique_stocks]
     stocks_per_industry = stock_count_per_industry(ticker_details, stocks, sic_industry)
-
     stock_mse = mse_from_ideal(stock_counts)
     sic_mse = mse_from_ideal(list(stocks_per_industry.values()))
 
-    stock_score = np.log(1 + len(stocks)) / (1 + stock_quantity * stock_mse)
-    sic_score = (n_allowed_industries / len(unique_industries)) / (1 + sic_mse)
+    stock_score = np.log(1 + len(stocks)) / (1 + len(unique_stocks) * stock_mse)
+    sic_score = (len(unique_industries) / n_allowed_industries) / (1 + sic_mse)
 
     return stock_score + sic_score
 
