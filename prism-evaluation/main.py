@@ -285,8 +285,7 @@ def client_satisfaction(df: pd.DataFrame, risk_profile: float) -> float:
     if client_risk >= portfolio_risk:
         return 1
 
-    # XXX: Do we want to allow -ve client satisfaction scores?
-    return max(0, 1 - ((portfolio_risk - client_risk) / client_risk))
+    return 1 - ((portfolio_risk - client_risk) / client_risk)
 
 
 def risk_adjusted_returns(
