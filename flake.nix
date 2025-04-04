@@ -40,7 +40,9 @@
                     pyright
                     (python3.withPackages(p : with p; [
                       requests
-
+                      numpy
+                      aiohttp
+                      tabulate
                       python-lsp-server
                       python-lsp-jsonrpc
                       python-lsp-black

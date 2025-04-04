@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -167,7 +168,7 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := http.Post("http://prism-llm:8001", "application/json", bytes.NewBuffer(content))
+	resp, err := http.Post("http://prism-llm:8001/generate", "application/json", bytes.NewBuffer(content))
 
 	if err != nil {
 		http.Error(w, "Failed to POST to PyServer"+err.Error()+"\n\nIf you see this please contact Cyrus or Sai", http.StatusInternalServerError)
