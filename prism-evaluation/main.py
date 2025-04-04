@@ -18,6 +18,8 @@ DIVERSITY_SCALE = 1.0
 CLI_SAT_SCALE = 1.0
 RAR_SCALE = 1.0
 
+DEBUG = False
+
 
 @dataclass
 class Context:
@@ -173,12 +175,13 @@ def get_points(
     df: pd.DataFrame,
     profit: float,
     stocks: List[Tuple[str, int]],
+    legal_stocks: list[tuple[str, int]],
     context: Context,
     unique_industries: Set[str],
     basedir: str,
     sic_industry: dict[str, list[str]],
     ticker_details: dict,
-) -> float:
+) -> int:
     n_allowed_industries = len(unique_industries) - len(context.dislikes)
 
     roi = return_on_investment(profit, context)
@@ -192,12 +195,24 @@ def get_points(
     client_sat = client_satisfaction(df, risk_profile(context))
     rar = risk_adjusted_returns(df, context, basedir)
 
+    if DEBUG:
+        print(f"{roi=}", f"{diversity=}", f"{client_sat=}", f"{rar=}")
+
     points = (
         ROI_SCALE * roi
         + DIVERSITY_SCALE * diversity
         + CLI_SAT_SCALE * client_sat
         + RAR_SCALE * rar
     )
+
+    points = points * 100  # make a nicer scale for points
+
+    # Dock fixed amount of points, if illegal
+    if len(legal_stocks) != len(stocks):
+        profit = 0.85 * profit if profit > 0 else profit * 1.15
+        points = 0.85 * points if points > 0 else points * 1.15
+
+    points = np.round(points)
 
     return points if profit > 0 else -abs(points)
 
@@ -304,30 +319,30 @@ def evaluate(
     unique_industries: Set[str],
     ref_client: ReferenceClient,
     basedir: str,
-) -> Tuple[bool, str, float, float]:
+) -> Tuple[bool, str, float, int]:
     # Check did not send multiple stocks
     if len(stocks) != len(set([s for s, _ in stocks])):
-        return False, f"Error: duplicate tickers: {stocks}", 0.0, -1.0
+        return False, f"Error: duplicate tickers: {stocks}", 0.0, -1
 
     if min([i for _, i in stocks]) <= 0:
-        return False, f"Error: invalid stock weight: {stocks}", 0.0, -1.0
+        return False, f"Error: invalid stock weight: {stocks}", 0.0, -1
 
     if init_price_breaches_threshold(df, context.budget):
         # Breached the max price that someone has
-        return False, "Error: budget breached", 0.0, -1.0
+        return False, "Error: budget breached", 0.0, -1
 
     # Verify all tickers exist and grab details
     ticker_details = {}
     for stock, _ in stocks:
         details = ref_client.get_ticker_details(stock)
         if details["status"] != "OK":
-            return False, f"Error: invalid ticker: {stock}", 0.0, -1.0
+            return False, f"Error: invalid ticker: {stock}", 0.0, -1
         elif details["results"]["type"] != "CS":
             return (
                 False,
                 f"Error: invalid ticker type: {stock} of type {details['results']['type']}",
                 0.0,
-                -1.0,
+                -1,
             )
         ticker_details[stock] = details
 
@@ -347,17 +362,13 @@ def evaluate(
         df,
         profit,
         stocks,
+        legal_stocks,
         context,
         unique_industries,
         basedir,
         sic_industry,
         ticker_details,
     )
-
-    # Dock fixed amount of points, if illegal
-    if len(legal_stocks) != len(stocks):
-        profit = 0.85 * profit if profit > 0 else profit * 1.15
-        points = 0.85 * points if points > 0 else points * 1.15
 
     return True, "", profit, points
 
@@ -404,6 +415,7 @@ def main(api_key: str, data: Dict[str, Union[List[Dict[str, int]], Any]]):
     passed, error_message, profit, points = evaluate(
         df, stocks, context, sic_industry, unique_industries, ref_client, args.basedir
     )
+
     print(
         json.dumps(
             {
