@@ -20,12 +20,11 @@ hobbies = [
     "hiking",
     "photography",
     "gardening",
-    "playing guitar",
+    "guitar",
     "cooking",
     "bird watching",
     "rock climbing",
     "knitting",
-    "reading science fiction",
     "learning languages",
     "woodworking",
 ]
