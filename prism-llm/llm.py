@@ -52,7 +52,6 @@ def prompt(data):
     Output:
     """
     prompt = base_str + dislikes_str + employment_str + budget_str
-    print(prompt)
     return prompt
 
 
