@@ -65,7 +65,7 @@ $k$, such that $k = 1 - \frac{\text{player risk}}{1.2}$. The one minus term
 changes a 1.2 from meaning most risky to least risky.
 
 $$
-\sigma_{\text{threshold}} = \mu \sqrt{\left(1-k\right)^2}
+\sigma_{\text{threshold}} = \mu\cdot|~1-k~|
 $$
 
 $\mu$ is the average stock price in the portfolio over the given period.
