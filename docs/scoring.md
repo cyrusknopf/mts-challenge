@@ -47,7 +47,8 @@ pharma respectively, their breakdown (and the idea) would be as follows
 ## Client Satisfaction
 
 Client satisfaction is effectively a measure of risk. The idea here is that the
-client will be happy if you exceed their risk threshold, and unhappy if you do.
+client will be unhappy if you exceed their risk threshold, and happy if you
+don't.
 
 This requires calculating the risk of a portfolio: this is done with standard
 deviation of portfolio value with measurements taken each day. This is in the
