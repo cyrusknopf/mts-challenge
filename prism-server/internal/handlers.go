@@ -21,6 +21,11 @@ type Response struct {
 	Message string `json:"message"`
 }
 
+type LLMResponse struct {
+	Status int    `json:"status"`
+	Body   string `json:"body"`
+}
+
 type WeightedStock struct {
 	Ticker   string `json:"ticker"`
 	Quantity uint   `json:"quantity"`
@@ -207,8 +212,17 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Unmarshal the response into the LLMResponse struct
+	var llmResp LLMResponse
+	err = json.Unmarshal(llm_resp, &llmResp)
+	if err != nil {
+		fmt.Println("Error unmarshalling LLM response:", err)
+		return
+	}
+
+	// Set the message to be just the "body" of the response
 	resp_to_user := Response{
-		Message: string(llm_resp),
+		Message: llmResp.Body,
 	}
 	// Write JSON response to response writer
 	w.Header().Set("Content-Type", "application/json")
