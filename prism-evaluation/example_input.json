@@ -1,14 +1,21 @@
 {
   "stocks": [
-    ["NVDA", 10],
-    ["META", 1]
+    {
+      "ticker": "NVDA",
+      "quantity": 10
+    },
+    {
+      "ticker": "META",
+      "quantity": 1
+    }
   ],
   "context": {
-    "start_date": "2021-01-02",
-    "end_date": "2024-03-27",
+    "timestamp": "69",
+    "start": "2021-01-02",
+    "end": "2024-03-27",
     "budget": 1000,
     "age": 30,
-    "employment_status": true,
+    "employed": true,
     "salary": 100000,
     "dislikes": ["Technology"]
   }
