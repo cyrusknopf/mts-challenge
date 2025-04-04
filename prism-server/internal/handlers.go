@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"bytes"
 	"time"
 )
 
@@ -189,7 +190,6 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 	// Write JSON response to response writer
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp_to_user)
-	w.Write(content)
 }
 
 type EvaluationData struct {
