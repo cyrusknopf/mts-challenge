@@ -147,7 +147,6 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 	h.pyServerMutex.Unlock()
 	// Make the request
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(content))
-
 	if err != nil {
 		http.Error(w, "Failed to POST to PyServer"+err.Error()+"\n\nIf you see this please contact Cyrus or Sai", http.StatusInternalServerError)
 		return
@@ -281,7 +280,7 @@ Example expected format:
 	}
 
 	if !response.Passed {
-		if len(response.Error) > 0 {
+		if len(response.Error) > 0 && response.Points == -1.0 {
 			// Penalise profit and points to 0.95%.
 			_, err = h.db.Exec("UPDATE teams SET profit = profit * 0.95, points = points * 0.95, last_submission_time = NOW() WHERE api_key = $1", apiKey)
 			if err != nil {

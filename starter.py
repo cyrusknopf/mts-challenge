@@ -2,7 +2,7 @@ import json
 
 import requests
 
-URL = "localhost"
+URL = "mts-prism.com"
 PORT = 8082
 
 # Please do NOT share this information anywhere, unless you want your team to be cooked.
@@ -96,7 +96,7 @@ if not success:
 print(f"Context provided: ", context)
 
 # Maybe do something with the context to generate this?
-portfolio = [("AAPL", 1), ("MSFT", 1), ("NVDA", 1), ("PFE", 1)]
+portfolio = [("AAPL", 1), ("MSFT", 1)]
 
 success, response = send_portfolio(portfolio)
 if not success:

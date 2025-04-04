@@ -406,7 +406,7 @@ def main(api_key: str, data: Dict[str, Union[List[Dict[str, int]], Any]]):
                 {
                     "passed": False,
                     "profit": 0.0,
-                    "points": -1.0,
+                    "points": 0.0,  # Do not penalise this error
                     "error": f"invalid ticker(s) passed in {data['stocks']}",
                 }
             )
