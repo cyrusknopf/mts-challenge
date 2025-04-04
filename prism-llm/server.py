@@ -45,7 +45,7 @@ class PRISMServer(BaseHTTPRequestHandler):
             if content_type == "application/json":
                 data = json.loads(post_data)
                 llm_response = get_response(self.model, self.tokenizer, data)
-                response = {"status": 200, "body": f"{json.dumps(llm_response)}"}
+                response = {"status": 200, "body": f"{(llm_response)}"}
             else:
                 response = {"status": 400, "body": "Unsupported content type"}
         except Exception as e:

@@ -12,53 +12,53 @@ smollm_135_v2_unsloth = "unsloth/SmolLM2-135M-Instruct"
 gpt_neo = "EleutherAI/gpt-neo-1.3B"
 data_to_text = "RUCAIBox/mvp-data-to-text"
 
-MODEL: str = data_to_text
+MODEL: str = flan_instr
 fake = Faker()
 
-# prompt = (
-#     lambda data: f"""
-# You will be given some information about a person. Your sole task is to write a short passage including details about the human. Respond with all included dates
+ prompt = (
+     lambda data: f"""
+ You will be given some information about a person. Your sole task is to write a short passage including details about the human. Respond with all included dates
+
+ Input: ```
+ Name: {fake.name()}
+ Age: {data["age"]}
+ their investment start date : {data["start"]}
+ their investment end date : {data["end"]}
+ they avoid : {','.join(data["dislikes"])}
+ hobbies: paintings
+ employed: {data["employed"]}
+ budget: ${data["budget"]} total
+ Salary: ${data["salary"]} per year```
+
+ Output:
+ """
+ )
+
+ #prompt = (
+ #   lambda data: f"""
+#You are given the following information about an individual. Your task is to generate a natural language description that captures all the details provided below in a coherent and engaging narrative.
+
+#Input Details:
+#- Name: {fake.name()}
+#- Age: {data["age"]}
+#- Investment Start Date: {data["start"]}
+#- Investment End Date: {data["end"]}
+#- Dislikes: {', '.join(data["dislikes"])}
+#- Hobbies: Painting
+#- Employment Status: {data["employed"]}
+#- Total Budget: ${data["budget"]}
+#- Annual Salary: ${data["salary"]}
 #
-# Input: ```
-# Name: {fake.name()}
-# Age: {data["age"]}
-# their investment start date : {data["start"]}
-# their investment end date : {data["end"]}
-# they avoid : {','.join(data["dislikes"])}
-# hobbies: painting
-# employed: {data["employed"]}
-# budget: ${data["budget"]} total
-# Salary: ${data["salary"]} per year```
-#
-# Output:
-# """
-# )
-
-prompt = (
-    lambda data: f"""
-You are given the following information about an individual. Your task is to generate a natural language description that captures all the details provided below in a coherent and engaging narrative.
-
-Input Details:
-- Name: {fake.name()}
-- Age: {data["age"]}
-- Investment Start Date: {data["start"]}
-- Investment End Date: {data["end"]}
-- Dislikes: {', '.join(data["dislikes"])}
-- Hobbies: Painting
-- Employment Status: {data["employed"]}
-- Total Budget: ${data["budget"]}
-- Annual Salary: ${data["salary"]}
-
-Generate a brief yet comprehensive paragraph that summarizes these details.
-"""
-)
+#Generate a brief yet comprehensive paragraph that summarizes these details.
+#"""
+#)
 
 def init_model(model, device: str = "cuda"):
-    # tokenizer = AutoTokenizer.from_pretrained(model)
-    # model = AutoModelForSeq2SeqLM.from_pretrained(model).to(device)
+    tokenizer = AutoTokenizer.from_pretrained(model)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model).to(device)
     # model = AutoModelForCausalLM.from_pretrained(model).to(device)
-    tokenizer = MvpTokenizer.from_pretrained(model)
-    model = MvpForConditionalGeneration.from_pretrained(model).to(device)
+    #tokenizer = MvpTokenizer.from_pretrained(model)
+    #model = MvpForConditionalGeneration.from_pretrained(model).to(device)
 
     return tokenizer, model
 
