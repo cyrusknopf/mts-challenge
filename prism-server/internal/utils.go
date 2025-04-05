@@ -21,6 +21,8 @@ type RequestContext struct {
 
 const (
 	SEVEN_YEARS_IN_SECONDS int64 = 220752000
+	THREE_YEARS_IN_SECONDS int64 = 94608000
+	ONE_WEEK_IN_SECONDS    int64 = 604800
 )
 
 func GenerateRandomContext() RequestContext {
@@ -114,14 +116,14 @@ func randomDateRange() (time.Time, time.Time) {
 	maxEndUnix := maxEndDate.Unix()
 
 	// Define the soft upper bound for the second date
-	softEndUnix := firstRandSec + SEVEN_YEARS_IN_SECONDS
+	softEndUnix := firstRandSec + THREE_YEARS_IN_SECONDS
 
 	// Define actual upper bound for second date
 	boundEndUnix := min(maxEndUnix, softEndUnix)
 
 	// Ensure that the second date is between firstDate and maxEndDate.
 	secondRangeDuration := boundEndUnix - firstRandSec
-	secondRandSec := firstRandSec + rand.Int64N(secondRangeDuration)
+	secondRandSec := firstRandSec + rand.Int64N(secondRangeDuration+ONE_WEEK_IN_SECONDS)
 	secondDate := time.Unix(secondRandSec, 0)
 
 	return firstDate, secondDate
