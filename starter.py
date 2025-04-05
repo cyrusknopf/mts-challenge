@@ -1,4 +1,5 @@
 import json
+from time import sleep
 
 import requests
 
@@ -6,7 +7,7 @@ URL = "mts-prism.com"
 PORT = 8082
 
 # Please do NOT share this information anywhere, unless you want your team to be cooked.
-TEAM_API_CODE = "a"
+TEAM_API_CODE = "top 10 most glorious imperial rules"
 
 
 def send_get_request(path):
@@ -95,6 +96,7 @@ if not success:
     print(f"Error: {context}")
 print(f"Context provided: ", context)
 
+sleep(8)
 # Maybe do something with the context to generate this?
 portfolio = [("AAPL", 1), ("MSFT", 1)]
 

@@ -2,11 +2,23 @@
   "stocks": [
     {
       "ticker": "AAPL",
-      "quantity": 3
+      "quantity": 1
     },
     {
       "ticker": "MSFT",
-      "quantity": 3
+      "quantity": 1
+    },
+    {
+      "ticker": "GME",
+      "quantity": 6
+    },
+    {
+      "ticker": "PYPL",
+      "quantity": 6
+    },
+    {
+      "ticker": "PLTR",
+      "quantity": 6
     }
   ],
   "context": {
@@ -16,7 +28,7 @@
     "budget": 10000,
     "age": 30,
     "employed": true,
-    "salary": 100000,
-    "dislikes": ["Technology"]
+    "salary": 10000000,
+    "dislikes": []
   }
 }
