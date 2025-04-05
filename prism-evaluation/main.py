@@ -74,8 +74,9 @@ def get_tickers_agg_bars(
     return df, problematic_tickers
 
 
-def init_price_breaches_threshold(df: pd.DataFrame, threshold: float) -> bool:
-    return df.groupby(level=1).first()["value"].sum() > threshold
+def init_price_breaches_threshold(df: pd.DataFrame, threshold: float) -> (bool, float):
+    value = df.groupby(level=1).first()["value"].sum()
+    return (value > threshold, value)
 
 
 def is_industry_in_dislikes(
@@ -331,9 +332,10 @@ def evaluate(
     if min([i for _, i in stocks]) <= 0:
         return False, f"Error: invalid stock weight: {stocks}", 0.0, -1
 
-    if init_price_breaches_threshold(df, context.budget):
+    failure, value = init_price_breaches_threshold(df, context.budget)
+    if failure:
         # Breached the max price that someone has
-        return False, "Error: budget breached", 0.0, -1
+        return False, f"Error: budget breached (your portfolio value: {value})", 0.0, -1
 
     # Verify all tickers exist and grab details
     ticker_details = {}

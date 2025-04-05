@@ -1,6 +1,26 @@
 {
   "stocks": [
     {
+      "ticker": "JPM",
+      "quantity": 1
+    },
+    {
+      "ticker": "BAC",
+      "quantity": 1
+    },
+    {
+      "ticker": "WFC",
+      "quantity": 1
+    },
+    {
+      "ticker": "PGR",
+      "quantity": 1
+    },
+    {
+      "ticker": "GS",
+      "quantity": 1
+    },
+    {
       "ticker": "AAPL",
       "quantity": 1
     },
@@ -9,26 +29,106 @@
       "quantity": 1
     },
     {
-      "ticker": "GME",
-      "quantity": 6
+      "ticker": "NVDA",
+      "quantity": 1
     },
     {
-      "ticker": "PYPL",
-      "quantity": 6
+      "ticker": "GOOG",
+      "quantity": 1
     },
     {
-      "ticker": "PLTR",
-      "quantity": 6
+      "ticker": "AMZN",
+      "quantity": 1
+    },
+    {
+      "ticker": "ISRG",
+      "quantity": 1
+    },
+    {
+      "ticker": "AMGN",
+      "quantity": 1
+    },
+    {
+      "ticker": "GILD",
+      "quantity": 1
+    },
+    {
+      "ticker": "VRTX",
+      "quantity": 1
+    },
+    {
+      "ticker": "REGN",
+      "quantity": 1
+    },
+    {
+      "ticker": "ALNY",
+      "quantity": 1
+    },
+    {
+      "ticker": "AMT",
+      "quantity": 1
+    },
+    {
+      "ticker": "PLD",
+      "quantity": 1
+    },
+    {
+      "ticker": "PSA",
+      "quantity": 1
+    },
+    {
+      "ticker": "DLR",
+      "quantity": 1
+    },
+    {
+      "ticker": "UPS",
+      "quantity": 1
+    },
+    {
+      "ticker": "UNP",
+      "quantity": 1
+    },
+    {
+      "ticker": "CSX",
+      "quantity": 1
+    },
+    {
+      "ticker": "LUV",
+      "quantity": 1
+    },
+    {
+      "ticker": "PAA",
+      "quantity": 1
+    },
+    {
+      "ticker": "MMM",
+      "quantity": 1
+    },
+    {
+      "ticker": "CAT",
+      "quantity": 1
+    },
+    {
+      "ticker": "DE",
+      "quantity": 1
+    },
+    {
+      "ticker": "AMAT",
+      "quantity": 1
+    },
+    {
+      "ticker": "GE",
+      "quantity": 1
     }
   ],
   "context": {
     "timestamp": "69",
-    "start": "2021-01-02",
-    "end": "2024-03-27",
-    "budget": 10000,
-    "age": 30,
-    "employed": true,
-    "salary": 10000000,
-    "dislikes": []
+    "start": "2008-03-08",
+    "end": "2010-02-03",
+    "budget": 17,
+    "age": 29,
+    "employed": false,
+    "salary": 0,
+    "dislikes": ["Structured Finance"]
   }
 }
