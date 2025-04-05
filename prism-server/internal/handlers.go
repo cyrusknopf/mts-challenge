@@ -31,6 +31,8 @@ type WeightedStock struct {
 type HandlersConfig struct {
 	db               *Database
 	userContext      map[string]*RequestContext
+	lastRequestTime  map[string]time.Time
+	maxDeltaSpamTime time.Duration // Number of seconds
 	userContextMutex sync.RWMutex
 	pyServerMutex    sync.RWMutex
 	timeToLive       time.Duration
@@ -39,8 +41,8 @@ type HandlersConfig struct {
 	numLLMServers    int
 }
 
-func NewHandlers(db *Database, uc map[string]*RequestContext, timeToLive time.Duration, evalDir string, apiKey string, numLLMServers int) HandlersConfig {
-	return HandlersConfig{db, uc, sync.RWMutex{}, sync.RWMutex{}, timeToLive, evalDir, apiKey, numLLMServers}
+func NewHandlers(db *Database, uc map[string]*RequestContext, maxDeltaSpamTime time.Duration, timeToLive time.Duration, evalDir string, apiKey string, numLLMServers int) HandlersConfig {
+	return HandlersConfig{db, uc, make(map[string]time.Time, 0), maxDeltaSpamTime, sync.RWMutex{}, sync.RWMutex{}, timeToLive, evalDir, apiKey, numLLMServers}
 }
 
 type User struct {
@@ -115,6 +117,27 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 	if !validKey {
 		http.Error(w, "Unauthorized - invalid or missing X-API-Code header. You should have received on X-API-Code per team.", http.StatusUnauthorized)
 		return
+	}
+
+	userLastTime, ok := h.lastRequestTime[apiKey]
+	if !ok {
+		h.lastRequestTime[apiKey] = time.Now()
+	} else {
+		if userLastTime.Add(h.maxDeltaSpamTime).After(time.Now()) {
+			// Spam detected
+			// Penalise
+			_, err = h.db.Exec("UPDATE teams SET profit = profit * 0.75, points = points * 0.75, last_submission_time = NOW() WHERE api_key = $1", apiKey)
+			if err != nil {
+				fmt.Printf("%v\n", err)
+				http.Error(w, "An error was encountered updating the database, please reach out to the administrator if this keeps happening.", http.StatusInternalServerError)
+				return
+			}
+			// Return, do not service.
+			http.Error(w, fmt.Sprintf("You have re-requested within %v duration, please reduce your spam. You have been penalised a little bit.", h.maxDeltaSpamTime), http.StatusInternalServerError)
+			return
+		} else {
+			h.lastRequestTime[apiKey] = time.Now()
+		}
 	}
 
 	randomContext := GenerateRandomContext()

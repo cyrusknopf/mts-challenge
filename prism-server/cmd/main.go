@@ -19,7 +19,8 @@ const (
 	defaultPostgresPort     = 5432
 	defaultPostgresDatabase = "prism"
 	defaultTTL              = 10
-	defaultNumLLMServers    = 3
+	defaultNumLLMServers    = 4
+	defaultMaxDeltaSpamTime = 3
 )
 
 func main() {
@@ -34,6 +35,7 @@ func main() {
 	apikey := flag.String("apikey", "", "Api key for polygon")
 	evalDir := flag.String("eval-dir", defaultEvaluationDir, "Evaluation directory path")
 	numLLMServer := flag.Int("numLLMServer", defaultNumLLMServers, "Number of LLM servers stood up")
+	maxDeltaSpamTime := flag.Int("maxDeltaSpamTime", defaultMaxDeltaSpamTime, "The number of seconds of window from last request to be considered spam. Prevents LLM GPU overuse.")
 	flag.Parse()
 
 	// Establish connection to a known postgres server.
@@ -47,7 +49,7 @@ func main() {
 	// Map API keys to contexts from requests
 	userContext := make(map[string]*internal.RequestContext)
 
-	handlers := internal.NewHandlers(&db, userContext, time.Duration(*ttl)*time.Second, *evalDir, *apikey, *numLLMServer)
+	handlers := internal.NewHandlers(&db, userContext, time.Duration(*ttl)*time.Second, time.Duration(*maxDeltaSpamTime)*time.Second, *evalDir, *apikey, *numLLMServer)
 
 	// HTTP Handler for client answers.
 	http.HandleFunc("/submit", handlers.PostHandler)
