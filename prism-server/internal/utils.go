@@ -65,8 +65,8 @@ func GenerateRandomContext() RequestContext {
 
 	ctx := RequestContext{
 		Timestamp:        timestamp,
-		StartDate:        startDate.Local().Format(time.RFC3339),
-		EndDate:          endDate.Local().Format(time.RFC3339),
+		StartDate:        startDate.Format("2006-01-02"),
+		EndDate:          endDate.Format("2006-01-02"),
 		Age:              age,
 		EmploymentStatus: employed,
 		Salary:           salary,
