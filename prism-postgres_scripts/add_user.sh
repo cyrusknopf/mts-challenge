@@ -6,7 +6,7 @@
 #   ./insert_team.sh localhost "Alpha Traders" 950 142.57 "1 hour"
 
 # Check if at least 5 arguments are provided.
-if [ "$#" -lt 5 ]; then
+if [ "$#" -lt 4 ]; then
     echo "Usage: $0 <DB_HOST> <TEAM_NAME> <POINTS> <PROFIT> [LAST_INTERVAL]"
     exit 1
 fi
@@ -14,8 +14,8 @@ fi
 DB_HOST="$1"
 TEAM_NAME="$2"
 API_KEY=`echo $((1 + $RANDOM )) | md5sum - | cut -d' ' -f1`
-POINTS="$4"
-PROFIT="$5"
+POINTS="$3"
+PROFIT="$4"
 
 # Optional parameter: last_interval for last_submission_time; default is "1 hour"
 LAST_INTERVAL="${6:-1 hour}"
