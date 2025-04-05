@@ -13,10 +13,10 @@ warnings.filterwarnings("ignore")
 
 # Scaling constants for calculating points
 # see docs/scoring.md for more info
-ROI_SCALE = 1.0
+ROI_SCALE = 1.1
 DIVERSITY_SCALE = 1.3
 CLI_SAT_SCALE = 2.0
-RAR_SCALE = 1.2
+RAR_SCALE = 1.3
 
 DEBUG = False
 
@@ -212,8 +212,9 @@ def get_points(
 
     # Dock fixed amount of points, if illegal
     if len(legal_stocks) != len(stocks):
-        profit = 0.5 * profit if profit > 0 else profit * 1.5
-        points = 0.5 * points if points > 0 else points * 1.5
+        diff = abs(len(legal_stocks) - len(stocks))
+        profit = -(0.1 * diff) * profit if profit > 0 else profit * (1 + (0.1 * diff))
+        points = -(0.1 * diff) * points if points > 0 else points * (1 + (0.1 * diff))
 
     return points if profit > 0 else -abs(points)
 
@@ -406,7 +407,7 @@ def main(api_key: str, data: Dict[str, Union[List[Dict[str, int]], Any]]):
                 {
                     "passed": False,
                     "profit": 0.0,
-                    "points": 0.0,  # Do not penalise this error
+                    "points": -1.0,
                     "error": f"invalid ticker(s) passed in {stocks}. The error here either means you have passed in invalid ticker(s) OR the tickers are not valid for the time range provided. Please ensure that the ticker(s) is (are) trading publicly during the ENTIRE time frame provided.",
                 }
             )

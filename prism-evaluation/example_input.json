@@ -1,7 +1,11 @@
 {
   "stocks": [
     {
-      "ticker": "PYPL",
+      "ticker": "AAPL",
+      "quantity": 3
+    },
+    {
+      "ticker": "MSFT",
       "quantity": 3
     }
   ],
@@ -9,10 +13,10 @@
     "timestamp": "69",
     "start": "2021-01-02",
     "end": "2024-03-27",
-    "budget": 1000,
+    "budget": 10000,
     "age": 30,
     "employed": true,
     "salary": 100000,
-    "dislikes": []
+    "dislikes": ["Technology"]
   }
 }
