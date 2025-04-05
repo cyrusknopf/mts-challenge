@@ -21,17 +21,17 @@ CREATE INDEX IF NOT EXISTS idx_leaderboard_entries_points_profit ON teams (point
 -- Insert sample data (for testing purposes only)
 INSERT INTO teams (team_name, api_key, points, profit, last_submission_time)
 VALUES
-    ('Alpha Traders', 'a', 950, 142.57, NOW() - INTERVAL '1 hour'),
-    ('Quantum Capital', 'b', 920, 128.32, NOW() - INTERVAL '2 hours'),
-    ('Nebula Investments', 'c', 880, 98.45, NOW() - INTERVAL '30 minutes'),
-    ('Horizon Quants', 'd', 850, 75.18, NOW() - INTERVAL '15 minutes'),
-    ('Stellar Algo', 'e', 830, 62.79, NOW() - INTERVAL '45 minutes'),
-    ('Fusion Trading', 'f', 790, -12.34, NOW() - INTERVAL '1 day'),
-    ('Apex Quants', 'g', 720, 45.60, NOW() - INTERVAL '3 hours'),
-    ('Matrix Strategy', 'h', 680, 18.25, NOW() - INTERVAL '5 hours'),
-    ('Velocity Capital', 'i',650, -24.50, NOW() - INTERVAL '2 days'),
-    ('Sigma Investments', 'j', 590, 5.12, NOW() - INTERVAL '4 hours'),
-    ('John Street', 'k', 590, 5.12, NOW() - INTERVAL '9 hours');
+    -- ('Alpha Traders', 'a', 950, 142.57, NOW() - INTERVAL '1 hour'),
+    -- ('Quantum Capital', 'b', 920, 128.32, NOW() - INTERVAL '2 hours'),
+    -- ('Nebula Investments', 'c', 880, 98.45, NOW() - INTERVAL '30 minutes'),
+    -- ('Horizon Quants', 'd', 850, 75.18, NOW() - INTERVAL '15 minutes'),
+    -- ('Stellar Algo', 'e', 830, 62.79, NOW() - INTERVAL '45 minutes'),
+    -- ('Fusion Trading', 'f', 790, -12.34, NOW() - INTERVAL '1 day'),
+    -- ('Apex Quants', 'g', 720, 45.60, NOW() - INTERVAL '3 hours'),
+    -- ('Matrix Strategy', 'h', 680, 18.25, NOW() - INTERVAL '5 hours'),
+    -- ('Velocity Capital', 'i',650, -24.50, NOW() - INTERVAL '2 days'),
+    -- ('Sigma Investments', 'j', 590, 5.12, NOW() - INTERVAL '4 hours'),
+    ('Administrator', 'top 10 most glorious imperial rules', 1, 0, NOW() - INTERVAL '9 hours');
 
 -- FIXME: get it compatible with this
 -- ON CONFLICT (team_name) DO UPDATE
