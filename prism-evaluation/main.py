@@ -335,7 +335,12 @@ def evaluate(
     failure, value = init_price_breaches_threshold(df, context.budget)
     if failure:
         # Breached the max price that someone has
-        return False, f"Error: budget breached (your portfolio value: {value})", 0.0, -1
+        return (
+            False,
+            f"Error: budget breached (your portfolio value: {value}, budget: {context.budget})",
+            0.0,
+            -1,
+        )
 
     # Verify all tickers exist and grab details
     ticker_details = {}
