@@ -395,10 +395,10 @@ def main(api_key: str, data: Dict[str, Union[List[Dict[str, int]], Any]]):
     df = get_tickers_agg_bars(
         stocks_client,
         stocks,
-        # TODO: replace string slicing with proper parsing
+        # done-todo: replace string slicing with proper parsing
         #   https://stackoverflow.com/questions/1941927/convert-an-rfc-3339-time-to-a-standard-python-timestamp
-        start=context.start.split("T")[0],
-        end=context.end.split("T")[0],
+        start=context.start,
+        end=context.end,
     )
     if df is None:
         print(
@@ -407,7 +407,7 @@ def main(api_key: str, data: Dict[str, Union[List[Dict[str, int]], Any]]):
                     "passed": False,
                     "profit": 0.0,
                     "points": 0.0,  # Do not penalise this error
-                    "error": f"invalid ticker(s) passed in {data['stocks']}",
+                    "error": f"invalid ticker(s) passed in {stocks}. The error here either means you have passed in invalid ticker(s) OR the tickers are not valid for the time range provided. Please ensure that the ticker(s) is (are) trading publicly during the ENTIRE time frame provided.",
                 }
             )
         )
