@@ -33,4 +33,4 @@ echo "Executing SQL command:"
 echo "$SQL"
 
 # Run the SQL command using psql.
-psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -c "$SQL"
+PGPASSWORD='l??pT-87pBqE2hN9-zY/)' psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -c "$SQL"
