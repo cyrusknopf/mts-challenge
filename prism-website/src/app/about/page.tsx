@@ -122,6 +122,25 @@ export default function AboutPage() {
               </ul>
 
             </section>
+
+
+            <section className="mb-12">
+              <h3 className="text-lg font-semibold mb-2">Starter Script</h3>
+              <div className="w-full h-[1000px]">
+                <iframe
+                  src="https://pastebin.com/embed_iframe/AtB95D1S?theme=dark"
+                  className="w-full h-full border-0"
+                ></iframe>
+              </div>
+              <Link
+                href="https://www.instagram.com/manchestertradingsociety"
+                target="_blank"
+                className="mt-4 block text-blue-500 hover:underline"
+              >
+                Link to starter script, CLICK ME.
+              </Link>
+            </section>
+
           </div>
         </main>
 
