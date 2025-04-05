@@ -283,7 +283,7 @@ Example expected format:
 		if len(response.Error) > 0 {
 			if response.Points == -1.0 {
 				// Penalise profit and points to 0.95%.
-				_, err = h.db.Exec("UPDATE teams SET profit = profit * 0.95, points = points * 0.95, last_submission_time = NOW() WHERE api_key = $1", apiKey)
+				_, err = h.db.Exec("UPDATE teams SET profit = profit * 0.75, points = points * 0.75, last_submission_time = NOW() WHERE api_key = $1", apiKey)
 				if err != nil {
 					fmt.Printf("%v\n", err)
 					http.Error(w, "An error was encountered updating the database, please reach out to the administrator if this keeps happening.", http.StatusInternalServerError)
