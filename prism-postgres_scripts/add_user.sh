@@ -1,19 +1,19 @@
 #!/bin/bash
 # Usage:
-#   ./insert_team.sh <DB_HOST> <TEAM_NAME> <API_KEY> <POINTS> <PROFIT> [LAST_INTERVAL]
+#   ./insert_team.sh <DB_HOST> <TEAM_NAME>  <POINTS> <PROFIT> [LAST_INTERVAL]
 #
 # Example:
-#   ./insert_team.sh localhost "Alpha Traders" a 950 142.57 "1 hour"
+#   ./insert_team.sh localhost "Alpha Traders" 950 142.57 "1 hour"
 
 # Check if at least 5 arguments are provided.
 if [ "$#" -lt 5 ]; then
-    echo "Usage: $0 <DB_HOST> <TEAM_NAME> <API_KEY> <POINTS> <PROFIT> [LAST_INTERVAL]"
+    echo "Usage: $0 <DB_HOST> <TEAM_NAME> <POINTS> <PROFIT> [LAST_INTERVAL]"
     exit 1
 fi
 
 DB_HOST="$1"
 TEAM_NAME="$2"
-API_KEY="$3"
+API_KEY=`echo $((1 + $RANDOM )) | md5sum - | cut -d' ' -f1`
 POINTS="$4"
 PROFIT="$5"
 
