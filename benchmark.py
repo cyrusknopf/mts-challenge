@@ -8,21 +8,23 @@ import requests
 from tabulate import tabulate
 
 
-def run_get(url: str, api_key: str) -> int:
+def run_get(url: str, api_key: str, i: int) -> int:
     start: int = time.time_ns()
     headers = {"X-API-Code": api_key}
     res = requests.get(url, headers=headers)
     if res.status_code != 200:
         print("Request failed")
+        print(res.text, i)
         return -1
 
     stop: int = time.time_ns()
+    time.sleep(4)
 
     return stop - start
 
 
 def serial_bm(args, request_url) -> np.ndarray:
-    res_list = [run_get(request_url, args.apikey) for _ in range(args.iterations)]
+    res_list = [run_get(request_url, args.apikey, i) for i in range(args.iterations)]
 
     res = np.array(res_list) / 1e9
 
