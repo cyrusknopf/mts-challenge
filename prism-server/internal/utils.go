@@ -97,7 +97,7 @@ func ValidateAPIKey(apiKey string, db *Database) (bool, error) {
 
 func randomDateRange() (time.Time, time.Time) {
 	// Define the start and end of the initial date range.
-	startDate := time.Date(1995, 1, 1, 0, 0, 0, 0, time.UTC)
+	startDate := time.Date(2007, 1, 1, 0, 0, 0, 0, time.UTC)
 	endDate := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	// Compute the total seconds between startDate and endDate.
