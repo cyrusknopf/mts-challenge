@@ -56,12 +56,14 @@ def get_tickers_agg_bars(
     client: StocksClient, data: List[Tuple[str, int]], start: str, end: str
 ) -> pd.DataFrame | None:
     df = pd.DataFrame(None, columns=["ticker", "v", "vw", "o", "c", "h", "l", "t", "n"])
+    problematic_tickers = []
     for ticker, qty in data:
         bars = client.get_aggregate_bars(
             ticker, from_date=start, to_date=end, timespan="day"
         )
         if "results" not in bars:
-            return None
+            problematic_tickers.append(ticker)
+            continue
         tmpdf = pd.DataFrame(bars["results"])
         tmpdf["ticker"] = ticker
         tmpdf["qty"] = qty
@@ -69,7 +71,7 @@ def get_tickers_agg_bars(
         df = pd.concat([df, tmpdf])
     df.set_index(["t", "ticker"], inplace=True)
     df["value"] = df["c"] * df["qty"]
-    return df
+    return df, problematic_tickers
 
 
 def init_price_breaches_threshold(df: pd.DataFrame, threshold: float) -> bool:
@@ -393,7 +395,7 @@ def main(api_key: str, data: Dict[str, Union[List[Dict[str, int]], Any]]):
     for stock in data["stocks"]:
         stocks.append([stock["ticker"], stock["quantity"]])
 
-    df = get_tickers_agg_bars(
+    df, problematic_tickers = get_tickers_agg_bars(
         stocks_client,
         stocks,
         # done-todo: replace string slicing with proper parsing
@@ -401,14 +403,14 @@ def main(api_key: str, data: Dict[str, Union[List[Dict[str, int]], Any]]):
         start=context.start,
         end=context.end,
     )
-    if df is None:
+    if df is None or len(problematic_tickers):
         print(
             json.dumps(
                 {
                     "passed": False,
                     "profit": 0.0,
                     "points": -1.0,
-                    "error": f"invalid ticker(s) passed in {stocks}. The error here either means you have passed in invalid ticker(s) OR the tickers are not valid for the time range provided. Please ensure that the ticker(s) is (are) trading publicly during the ENTIRE time frame provided.",
+                    "error": f"invalid ticker(s) passed in {stocks}. The error here either means you have passed in invalid ticker(s) OR the tickers are not valid for the time range provided. Please ensure that the ticker(s) is (are) trading publicly during the ENTIRE time frame provided. Additionally, make sure you are using the CANNONICAL TICKER. Problematic Stocks: {problematic_tickers}",
                 }
             )
         )
