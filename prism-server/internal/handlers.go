@@ -36,10 +36,11 @@ type HandlersConfig struct {
 	timeToLive       time.Duration
 	evalDir          string
 	apiKey           string
+	numLLMServers    int
 }
 
-func NewHandlers(db *Database, uc map[string]*RequestContext, timeToLive time.Duration, evalDir string, apiKey string) HandlersConfig {
-	return HandlersConfig{db, uc, sync.RWMutex{}, sync.RWMutex{}, timeToLive, evalDir, apiKey}
+func NewHandlers(db *Database, uc map[string]*RequestContext, timeToLive time.Duration, evalDir string, apiKey string, numLLMServers int) HandlersConfig {
+	return HandlersConfig{db, uc, sync.RWMutex{}, sync.RWMutex{}, timeToLive, evalDir, apiKey, numLLMServers}
 }
 
 type User struct {
@@ -142,7 +143,7 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 	// Print serverside for debug
 	fmt.Printf("Requesting from %s\n", url)
 	// Cycle through values 1,2,3,4
-	port = port%4 + 1
+	port = port%h.numLLMServers + 1
 	// Unlock
 	h.pyServerMutex.Unlock()
 	// Make the request
