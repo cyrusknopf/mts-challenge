@@ -119,9 +119,13 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userLastTime, ok := h.lastRequestTime[apiKey]
-	if !ok {
+	h.userContextMutex.Lock()
+	userLastTime, found := h.lastRequestTime[apiKey]
+	h.userContextMutex.Unlock()
+	if !found {
+		h.userContextMutex.Lock()
 		h.lastRequestTime[apiKey] = time.Now()
+		h.userContextMutex.Unlock()
 	} else {
 		if userLastTime.Add(h.maxDeltaSpamTime).After(time.Now()) {
 			// Spam detected
@@ -136,7 +140,9 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("You have re-requested within %v duration, please reduce your spam. You have been penalised a little bit.", h.maxDeltaSpamTime), http.StatusInternalServerError)
 			return
 		} else {
+			h.userContextMutex.Lock()
 			h.lastRequestTime[apiKey] = time.Now()
+			h.userContextMutex.Unlock()
 		}
 	}
 
@@ -245,6 +251,7 @@ func (h *HandlersConfig) PostHandler(w http.ResponseWriter, r *http.Request) {
 	userContext, ok := h.userContext[apiKey]
 	// Remove key from map, as it has been consumed now. On error, ignores.
 	delete(h.userContext, apiKey)
+	delete(h.lastRequestTime, apiKey)
 	h.userContextMutex.Unlock()
 
 	// Check whether they have requested the context before.
