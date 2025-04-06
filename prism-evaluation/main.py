@@ -211,6 +211,9 @@ def get_points(
         + RAR_SCALE * rar
     )
 
+    value = df.groupby(level=1).first()["value"].sum()
+    points *= 1 - (value / context.budget)
+
     points = points * 10  # make a nicer scale for points
 
     # Dock fixed amount of points, if illegal
