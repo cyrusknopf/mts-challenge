@@ -307,7 +307,7 @@ Example expected format:
 	var response EvaluationResponse
 	err = json.Unmarshal([]byte(out.String()), &response)
 	if err != nil {
-		fmt.Printf("error: %v\n", err)
+		fmt.Printf("error: %v | %s\n", err, out.String())
 		http.Error(w, "Error during unmarshalling.", http.StatusInternalServerError)
 		return
 	}

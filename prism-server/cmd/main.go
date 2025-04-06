@@ -54,7 +54,7 @@ func main() {
 	// Map API keys to contexts from requests
 	userContext := make(map[string]*internal.RequestContext)
 
-	handlers := internal.NewHandlers(&db, userContext, time.Duration(*maxDeltaSpamTime)*time.Second, time.Duration(*ttl)*time.Second, *evalDir, *apikey, *numLLMServer)
+	handlers := internal.NewHandlers(&db, userContext, time.Duration(*maxDeltaSpamTime)*time.Second, time.Duration(*ttl)*time.Millisecond, *evalDir, *apikey, *numLLMServer)
 
 	// HTTP Handler for client answers.
 	http.HandleFunc("/submit", handlers.PostHandler)

@@ -13,10 +13,10 @@ warnings.filterwarnings("ignore")
 
 # Scaling constants for calculating points
 # see docs/scoring.md for more info
-ROI_SCALE = 7.0
-DIVERSITY_SCALE = 1.7
-CLI_SAT_SCALE = 1.4
-RAR_SCALE = 2.0
+ROI_SCALE = 10.0
+DIVERSITY_SCALE = 10.0
+CLI_SAT_SCALE = 10.0
+RAR_SCALE = 10.0
 
 DEBUG = False
 
@@ -224,7 +224,7 @@ def get_points(
 
 def return_on_investment(profit: float, context: Context) -> float:
     """Return on investment is defined as the ratio of profit to initial budget"""
-    return np.log(profit)
+    return np.log(profit) if profit > 0 else -np.log(abs(profit)) if profit < 0 else 0
 
 
 def diversity_score(
@@ -432,7 +432,7 @@ def main(api_key: str, data: Dict[str, Union[List[Dict[str, int]], Any]]):
             {
                 "passed": passed,
                 "profit": profit,
-                "points": points,
+                "points": 0 if np.isnan(points) else points,
                 "error": error_message,
             }
         )
