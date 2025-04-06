@@ -36,4 +36,4 @@ RUN python -m pip install pandas numpy polygon
 
 # Don't use JSON, instead raw shell to get env vars
 # CMD ["/bin/sh", "-c", "/app -port 8082 -ppwd $POSTGRES_PWD"]
-CMD /app -port 8082 -ppwd "$POSTGRES_PWD" -eval-dir /workspace/eval -apikey "$POLYGON_API_KEY" -numLLMServer 4 -maxDeltaSpamTime 3
+CMD /app -port 8082 -ppwd "$POSTGRES_PWD" -eval-dir /workspace/eval -apikey "$POLYGON_API_KEY" -numLLMServer 4 -maxDeltaSpamTime 3 -ttl 2

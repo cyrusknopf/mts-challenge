@@ -18,7 +18,6 @@ def run_get(url: str, api_key: str, i: int) -> int:
         return -1
 
     stop: int = time.time_ns()
-    time.sleep(4)
 
     return stop - start
 

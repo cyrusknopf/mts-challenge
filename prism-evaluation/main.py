@@ -13,10 +13,10 @@ warnings.filterwarnings("ignore")
 
 # Scaling constants for calculating points
 # see docs/scoring.md for more info
-ROI_SCALE = 1.5
-DIVERSITY_SCALE = 1.5
-CLI_SAT_SCALE = 2.0
-RAR_SCALE = 1.3
+ROI_SCALE = 2.0
+DIVERSITY_SCALE = 1.7
+CLI_SAT_SCALE = 1.4
+RAR_SCALE = 2.0
 
 DEBUG = False
 

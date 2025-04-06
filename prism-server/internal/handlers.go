@@ -1,10 +1,8 @@
 package internal
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os/exec"
 	"strings"
@@ -119,32 +117,32 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.userContextMutex.Lock()
-	userLastTime, found := h.lastRequestTime[apiKey]
-	h.userContextMutex.Unlock()
-	if !found {
-		h.userContextMutex.Lock()
-		h.lastRequestTime[apiKey] = time.Now()
-		h.userContextMutex.Unlock()
-	} else {
-		if userLastTime.Add(h.maxDeltaSpamTime).After(time.Now()) {
-			// Spam detected
-			// Penalise
-			_, err = h.db.Exec("UPDATE teams SET profit = profit * 0.75, points = points * 0.75, last_submission_time = NOW() WHERE api_key = $1", apiKey)
-			if err != nil {
-				fmt.Printf("%v\n", err)
-				http.Error(w, "An error was encountered updating the database, please reach out to the administrator if this keeps happening.", http.StatusInternalServerError)
-				return
-			}
-			// Return, do not service.
-			http.Error(w, fmt.Sprintf("You have re-requested within %v duration, please reduce your spam. You have been penalised a little bit.", h.maxDeltaSpamTime), http.StatusInternalServerError)
-			return
-		} else {
-			h.userContextMutex.Lock()
-			h.lastRequestTime[apiKey] = time.Now()
-			h.userContextMutex.Unlock()
-		}
-	}
+	// h.userContextMutex.Lock()
+	// userkastTime, found := h.lastRequestTime[apiKey]
+	// h.userContextMutex.Unlock()
+	// if !found {
+	// 	h.userContextMutex.Lock()
+	// 	h.lastRequestTime[apiKey] = time.Now()
+	// 	h.userContextMutex.Unlock()
+	// } else {
+	// 	if userLastTime.Add(h.maxDeltaSpamTime).After(time.Now()) {
+	// 		// Spam detected
+	// 		// Penalise
+	// 		_, err = h.db.Exec("UPDATE teams SET profit = profit * 0.75, points = points * 0.75, last_submission_time = NOW() WHERE api_key = $1", apiKey)
+	// 		if err != nil {
+	// 			fmt.Printf("%v\n", err)
+	// 			http.Error(w, "An error was encountered updating the database, please reach out to the administrator if this keeps happening.", http.StatusInternalServerError)
+	// 			return
+	// 		}
+	// 		// Return, do not service.
+	// 		http.Error(w, fmt.Sprintf("You have re-requested within %v duration, please reduce your spam. You have been penalised a little bit.", h.maxDeltaSpamTime), http.StatusInternalServerError)
+	// 		return
+	// 	} else {
+	// 		h.userContextMutex.Lock()
+	// 		h.lastRequestTime[apiKey] = time.Now()
+	// 		h.userContextMutex.Unlock()
+	// 	}
+	// }
 
 	randomContext := GenerateRandomContext()
 
@@ -164,44 +162,48 @@ func (h *HandlersConfig) GetHandler(w http.ResponseWriter, r *http.Request) {
 	       - 8004
 	    Locks around the port update since it is shared amongst goroutines that all serve the go HTTP server (i think)
 	*/
-	h.pyServerMutex.Lock()
-	// Base URL
-	base_url := "http://prism-llm:800%d/generate"
-	// Format with the port final number
-	url := fmt.Sprintf(base_url, port)
-	// Print serverside for debug
-	fmt.Printf("Requesting from %s\n", url)
-	// Cycle through values 1,2,3,4
-	port = port%h.numLLMServers + 1
-	// Unlock
-	h.pyServerMutex.Unlock()
+	// h.pyServerMutex.Lock()
+	// // Base URL
+	// base_url := "http://prism-llm:800%d/generate"
+	// // Format with the port final number
+	// url := fmt.Sprintf(base_url, port)
+	// // Print serverside for debug
+	// fmt.Printf("Requesting from %s\n", url)
+	// // Cycle through values 1,2,3,4
+	// port = port%h.numLLMServers + 1
+	// // Unlock
+	// h.pyServerMutex.Unlock()
 	// Make the request
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(content))
-	if err != nil {
-		http.Error(w, "Failed to POST to PyServer"+err.Error()+"\n\nIf you see this please contact Cyrus or Sai", http.StatusInternalServerError)
-		return
-	}
-	defer resp.Body.Close()
+	// resp, err := http.Post(url, "application/json", bytes.NewBuffer(content))
+	// if err != nil {
+	// 	http.Error(w, "Failed to POST to PyServer"+err.Error()+"\n\nIf you see this please contact Cyrus or Sai", http.StatusInternalServerError)
+	// 	return
+	// }
+	// defer resp.Body.Close()
 
 	// Read the response body
-	llm_resp, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error reading LLM response body:", err)
-		return
-	}
+	// llm_resp, err := io.ReadAll(resp.Body)
+	// if err != nil {
+	// 	fmt.Println("Error reading LLM response body:", err)
+	// 	return
+	// }
 
 	// Unmarshal the response into the LLMResponse struct
-	var llmResp LLMResponse
-	err = json.Unmarshal(llm_resp, &llmResp)
-	if err != nil {
-		fmt.Println("Error unmarshalling LLM response:", err)
-		return
-	}
+	// var llmResp LLMResponse
+	// err = json.Unmarshal(llm_resp, &llmResp)
+	// if err != nil {
+	// 	fmt.Println("Error unmarshalling LLM response:", err)
+	// 	return
+	// }
 
 	// Set the message to be just the "body" of the response
+	// resp_to_user := Response{
+	// 	Message: llmResp.Body,
+	// }
 	resp_to_user := Response{
-		Message: llmResp.Body,
+		Message: string(content),
 	}
+
 	// Map context to the individual user, identified by their API token.
 	h.userContextMutex.Lock()
 	// Set the time to now instead of pre-generation

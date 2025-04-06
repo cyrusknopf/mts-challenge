@@ -21,10 +21,10 @@
     "timestamp": "69",
     "start": "2024-11-26",
     "end": "2024-12-04",
-    "budget": 100000,
+    "budget": 1000,
     "age": 29,
     "employed": false,
     "salary": 0,
-    "dislikes": []
+    "dislikes": ["Technology"]
   }
 }

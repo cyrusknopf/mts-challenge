@@ -4,10 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
 	"mtschal/internal"
+
+	"golang.org/x/net/netutil"
 )
 
 const (
@@ -21,6 +24,7 @@ const (
 	defaultTTL              = 10
 	defaultNumLLMServers    = 4
 	defaultMaxDeltaSpamTime = 3
+	defaultConnectionCount  = 20
 )
 
 func main() {
@@ -36,6 +40,7 @@ func main() {
 	evalDir := flag.String("eval-dir", defaultEvaluationDir, "Evaluation directory path")
 	numLLMServer := flag.Int("numLLMServer", defaultNumLLMServers, "Number of LLM servers stood up")
 	maxDeltaSpamTime := flag.Int("maxDeltaSpamTime", defaultMaxDeltaSpamTime, "The number of seconds of window from last request to be considered spam. Prevents LLM GPU overuse.")
+	connectionCount := flag.Int("connectionCount", defaultConnectionCount, "The max concurrent connections")
 	flag.Parse()
 
 	// Establish connection to a known postgres server.
@@ -56,8 +61,18 @@ func main() {
 	http.HandleFunc("/request", handlers.GetHandler)
 	http.HandleFunc("/info", handlers.InfoHandler)
 	log.Printf("Starting server on port %d", *port)
-	net := fmt.Sprintf("%s:%d", *addr, *port)
-	if err := http.ListenAndServe(net, nil); err != nil {
-		log.Fatalf("Server failed to start: %v", err)
+	addrPort := fmt.Sprintf("%s:%d", *addr, *port)
+
+	// http.
+	// if err := http.ListenAndServe(net, nil); err != nil {
+	// 	log.Fatalf("Server failed to start: %v", err)
+	// }
+
+	l, err := net.Listen("tcp", addrPort)
+	if err != nil {
+		log.Fatalf("Listen: %v", err)
 	}
+	defer l.Close()
+	l = netutil.LimitListener(l, *connectionCount)
+	log.Fatal(http.Serve(l, nil))
 }
