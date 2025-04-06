@@ -8,6 +8,7 @@ PORT = 8082
 
 # Please do NOT share this information anywhere, unless you want your team to be cooked.
 TEAM_API_CODE = "top 10 most glorious imperial rules"
+# TEAM_API_CODE = "d3e63892502a2bf7839f3dc7b0f26801"
 
 
 def send_get_request(path):
@@ -96,9 +97,8 @@ if not success:
     print(f"Error: {context}")
 print(f"Context provided: ", context)
 
-sleep(8)
 # Maybe do something with the context to generate this?
-portfolio = [("AAPL", 1), ("MSFT", 1)]
+portfolio = [("AAPL", 10000), ("MSFT", 1)]
 
 success, response = send_portfolio(portfolio)
 if not success:
