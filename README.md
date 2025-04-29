@@ -129,9 +129,3 @@ mts-challenge/
 # Docker instructions
 
 `docker compose up --build -d`
-`docker compose exec prism-server bash`
-
-# Docker instructions
-
-`docker compose up --build -d`
-`docker compose exec prism-server bash`
